@@ -47,6 +47,14 @@
         <div class="box center-box">
           <h2>fanfic-idle</h2>
           <p>{{ storyText }}</p>
+          <div class="go-box">
+            <button @click="runJobs">Go!</button>
+          </div>
+          <ul class="job-queue">
+            <li v-for="item in jobqueue" :key="item.id">
+              <span>{{ item.name }}</span>
+            </li>
+          </ul>
           <div class="button-container">
             <button @click="readPage">Read page</button>
             <div class="timer">{{ readTimer }}</div>
@@ -163,6 +171,8 @@ export default {
         {
           id: 1,
           name: 'Reading',
+          multiplier: 1,
+
           wipLevel: 1,
           wipXp: 0,
           wipXpNeeded: 100,
@@ -183,35 +193,118 @@ export default {
         {
           id: 2,
           name: 'Characterization',
+          multiplier: 1,
+
           wipLevel: 1,
           wipXp: 0,
           wipXpNeeded: 100,
           wipMultiplier: 1,
+          wipDisplayXp: 0,
+          wipDisplayXpNeeded: 100,
+          wipDisplayMultiplier: 1,
+
           canonLevel: 1,
           canonXp: 0,
           canonXpNeeded: 100,
           canonMultiplier: 1,
+          canonDisplayXp: 0,
+          canonDisplayXpNeeded: 100,
+          canonDisplayMultiplier: 1,
         },
 
         {
           id: 3,
           name: 'Analysis',
+          multiplier: 1,
+
           wipLevel: 1,
           wipXp: 0,
           wipXpNeeded: 100,
           wipMultiplier: 1,
+          wipDisplayXp: 0,
+          wipDisplayXpNeeded: 100,
+          wipDisplayMultiplier: 1,
+
           canonLevel: 1,
           canonXp: 0,
           canonXpNeeded: 100,
           canonMultiplier: 1,
+          canonDisplayXp: 0,
+          canonDisplayXpNeeded: 100,
+          canonDisplayMultiplier: 1,
         },
 
+      ],
+
+      // i need to figure out how i want to represent what a job costs here
+      // there are a couple of components to cost. there is the xp cost, got that
+      // covered. but there's also the material cost, ie love character costs 5 pages
+      // and analyze plot costs 10 pages and so on and i'm not sure off the top of my
+      // head how i want to solve for that. the way i've got the object laid out right now
+      // there isn't really a natural way to do that, which i guess suggests i ought to change
+      // how my inventory works.
+      //
+      // oh, yeah, that kinda makes sense. what i can do is put what item a job generates and what
+      // item a job consumes into the job structure itself. then i don't have to have readPage logic
+      // that knows to turn on and off the lovechar or analtext buttons
+      jobs: [
+        {
+          id: 1,
+          name: 'ReadPage',
+          cost: 10,
+          skill: 'Reading',
+          produces: { Page: 1 },
+          consumes: { },
+
+        },
+
+        {
+          id: 2,
+          name: 'LoveCharacter',
+          cost: 20,
+          skill: 'Characterization',
+          produces: { CharLove: 1 },
+          consumes: { Page: 5 },
+        },
+
+        {
+          id: 3,
+          name: 'AnalyzeText',
+          cost: 30,
+          skill: 'Analysis',
+          produces: { TropeFragment: 1 },
+          consumes: { Page: 10 },
+        },
+
+      ],
+
+      items: [
+        {
+          id: 1,
+          name: 'Page',
+        },
+
+        {
+          id: 2,
+          name: 'CharLove',
+        },
+
+        {
+          id: 3,
+          name: 'TropeFragment',
+        },
       ],
 
       inventory: [
         { id: 1, name: "Pages read", count: 0 },
         { id: 2, name: "Characters loved", count: 0 },
-        { id: 3, name: "Trope parts", count: 0 }
+        { id: 3, name: "Trope fragments", count: 0 }
+      ],
+
+      // dummyjob: { id: 1, job: "None",},
+      jobqueue: [
+      //  this.dummyjob,
+
       ],
       readTimer: '0/10', // Added timer variable here
       loveTimer: '0/20', // the right way for this to work is for these timers to actually
@@ -231,6 +324,12 @@ export default {
       // canonMultGrowthFactor: 1.01,
       // wipMultGrowthFactor: 1.1,
 
+      // arrayPushTest: true,
+
+      jobsRunning: false,
+      jobQueueEmpty: true,
+
+
 
     }
   },
@@ -246,17 +345,36 @@ export default {
       this.activeTab = tabIndex;
     },
 
+    
+    // this is the main game loop right here
+    runJobs() {
+
+    },
+
+
+    // this is how a job gets added on to the queue
+    queueJob(job) {
+      if (this.jobqueue.length >= 5) {
+        return; // max queue length. parameterize this eventually, dude
+      }
+      this.jobqueue.push(job);
+    },
+
+
+
+    // totally refactoring all of this. in the new design all that happens in the job button handlers
+    // is we call queueJob
     readPage() {
+      this.queueJob(this.jobs[0]);
       let counter = 0;
-      // get our current xp values and multiplier for the reading skill
-      let readMult = this.skills[0].canonMultiplier * this.skills[0].wipMultiplier;
+
 
       const interval = setInterval(() => {
-        counter += readMult;
+        counter += this.skills[0].multiplier;
         this.readTimer = `${counter}/10`;
 
         // add to our experience, update the display value, level if necessary
-        this.addSkillXp(this.skills[0], readMult);
+        this.addSkillXp(this.skills[0], this.skills[0].multiplier);
 
         if (counter >= 10) {
           clearInterval(interval);
@@ -277,10 +395,18 @@ export default {
 
     loveCharacter() {
       let counter = 0;
+
+      this.addSkillXp(this.skills[1], this.skills[1].multiplier);
+
+
+
       const interval = setInterval(() => {
-        counter++;
+        counter += this.skills[1].multiplier;
         this.loveTimer = `${counter}/20`;
-        if (counter === 20) {
+
+        this.addSkillXp(this.skills[1], this.skills[1].multiplier);
+
+        if (counter >= 20) {
           clearInterval(interval);
           this.loveTimer = `0/20`;
           this.inventory[1].count++;     // add a loved character
@@ -295,13 +421,17 @@ export default {
 
     analText() {
       let counter = 0;
-      const intrerval = setInterval(() => {
+      const interval = setInterval(() => {
         counter++;
         this.analTimer = `${counter}/30`;
-        if (counter === 30) {
-          clearInterval(intrerval);
+
+        this.addSkillXp(this.skills[2], this.skills[2].multiplier);
+
+
+        if (counter >= 30) {
+          clearInterval(interval);
           this.analTimer = '0/30';
-          this.inventory[2]++;  // add a trope fragment
+          this.inventory[2].count++;  // add a trope fragment
           this.inventory[0].count -= 10; // remove 10 read pages
           if (this.inventory[0].count < 10) {
             this.analButtonDisabled = true;
@@ -335,6 +465,7 @@ export default {
           skill.canonDisplayXp = 0;
           skill.canonDisplayXpNeeded = this.formatDisplayNumber(skill.canonXpNeeded);
           skill.canonDisplayMultiplier = this.formatDisplayNumber(skill.canonMultiplier);
+          skill.multiplier = skill.canonMultiplier * skill.wipMultiplier;
         }
 
         skill.wipXp += xp;
@@ -348,6 +479,7 @@ export default {
           skill.wipDisplayXp = 0;
           skill.wipDisplayXpNeeded = this.formatDisplayNumber(skill.wipXpNeeded);
           skill.wipDisplayMultiplier = this.formatDisplayNumber(skill.wipMultiplier);
+          skill.multiplier = skill.canonMultiplier * skill.wipMultiplier;
         }
 
 
@@ -414,6 +546,17 @@ td {
   display: none;
 }
 
+/* style the go button */
+.go-box button {
+  font-size: 16px;
+  padding: 10px;
+  border: none;
+  background-color: hwb(136 6% 35%);
+  cursor: pointer;
+}
+
+
+
 /* Style the boxes */
 .box {
   background-color: #333;
@@ -470,6 +613,33 @@ td {
   color: #ddd;
 }
 
+/* Style the job queue */
+.job-queue {
+  margin-top: 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.job-queue li {
+  margin-bottom: 5px;
+  padding: 5px;
+  background-color: #555;
+  border-radius: 5px;
+  color: #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.job-queue li span {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.job-queue li small {
+  font-size: 14px;
+  color: #ddd;
+}
 
 
 
