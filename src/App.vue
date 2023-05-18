@@ -47,14 +47,6 @@
         <div class="box center-box">
           <h2>fanfic-idle</h2>
           <p>{{ storyText }}</p>
-          <div class="go-box">
-            <button @click="runJobs">Go!</button>
-          </div>
-          <ul class="job-queue">
-            <li v-for="item in jobqueue" :key="item.id">
-              <span>{{ item.name }}</span>
-            </li>
-          </ul>
           <div class="button-container">
             <button @click="readPage">Read page</button>
             <div class="timer">{{ readTimer }}</div>
@@ -68,6 +60,33 @@
             <div class="timer">{{ analTimer }}</div>
           </div>
         </div>
+
+        <div class="box queue-box">
+          <p>THE QUEUE SHALL LIVE HERE, FEAR ME AND TREMBLE</p>
+          <div class="go-box">
+            <button @click="runJobs">Go!</button>
+          </div>
+          <div class="progress-bar" id="jobQueueItem1" width="100%">
+            <!--                <div class="progress-fill" id="jobQueueFill1" style="width: 54%" > </div> -->
+            <div class="progress-text" id="jobQueueItemName1"> </div>
+
+            <div class="progress-fill" id="jobQueueFill1"> </div>
+
+          </div>
+          <hr />
+
+          <ul class="job-queue">
+            <li v-for="item in jobqueue" :key="item.id">
+              <div class="progress-bar">
+                <div class="progress-fill progressFill"></div>
+                <div class="progress-text">{{ item.name }}</div>
+              </div>
+            </li>
+          </ul>
+
+        </div>
+
+
         <div class="box right-box">
           <h2>Right Box</h2>
           <p>This is the right box.</p>
@@ -254,7 +273,7 @@ export default {
           cost: 10,
           skill: 'Reading',
           produces: { Page: 1 },
-          consumes: { },
+          consumes: {},
 
         },
 
@@ -303,7 +322,7 @@ export default {
 
       // dummyjob: { id: 1, job: "None",},
       jobqueue: [
-      //  this.dummyjob,
+        //  this.dummyjob,
 
       ],
       readTimer: '0/10', // Added timer variable here
@@ -319,15 +338,18 @@ export default {
       wipXpGrowthFactor: 1.2,
 
       // mult growth factor is how much the multiplier goes up
-      canonMultGrowthFactor: 2,
-      wipMultGrowthFactor: 5,
-      // canonMultGrowthFactor: 1.01,
-      // wipMultGrowthFactor: 1.1,
+      // canonMultGrowthFactor: 2,
+      // wipMultGrowthFactor: 5,
+      canonMultGrowthFactor: 1.01,
+      wipMultGrowthFactor: 1.1,
 
       // arrayPushTest: true,
 
       jobsRunning: false,
       jobQueueEmpty: true,
+
+      curJob: {},
+      isTicking: false,  // not sure i'm going to use this in the job loop yet
 
 
 
@@ -345,12 +367,200 @@ export default {
       this.activeTab = tabIndex;
     },
 
-    
+
     // this is the main game loop right here
     runJobs() {
+      if (this.jobsRunning) {
+        return; // alraedy jobs running, let's not double up on that
+      }
+
+      // if there aren't jobs in the queue, no point in being here
+      if (this.jobqueue.length === 0) {
+        return;
+      }
+
+      this.jobsRunning = true;
+
+      // this is pretty straightforward. 
+      //   we shift the first item out of the queue.
+      //   we validate that the job pre-reqs are met
+      //   we deduct the item cost, if any
+      //   we run the job
+      //   we add newly produced items to inventory, if any
+      //   we set jobsRunning to false
+      //   we call runJobs
+      //
+      // eventually the jobqueue will be empty and will short circuit out of the recursion
+
+      this.curJob = this.jobqueue[0];
+      let s = this.getSkillFromJob(this.curJob);
+      if (s.id >= 132234) {
+        this.foo = "bar"; // lol, this is just to shut up an error message
+      }
+
+      // check if we can afford the job
+      if (!this.canAfford(this.curJob)) {
+        // uh-oh, we can't afford this job. just return
+        this.jobsRunning = false;
+        return;
+      }
+
+      this.jobSpend(this.curJob);
+
+      // ok, now we set our cost for this job, set our per-second generation (which is the multiplier), and
+      // do a setInterval to repeatedly do that. when the job is complete we'll mark jobsRunning as false
+      // from inside the interval
+
+      // every tick we update the timer, add xp to the current skill, test to see if
+      // we're done with the job. when we're done with the job we'll detect that and 
+      // clear the interval
+
+      let counter = 0; // this will accumulate the total number of xp
+      // we've earned for this job during this execution
+      // so that we can tell when we've done enough and
+      // the job is complete
+      let xpPerTick = s.multiplier;
+
+      var pbar = document.getElementById("jobQueueFill1");
+      //var pbar = document.getElementById("jobQueueItem1");
+      var ptext = document.getElementById("jobQueueItemName1");
+
+      const interval = setInterval(() => {
+        counter += xpPerTick;
+        this.addSkillXp(s, xpPerTick);
+        var completion = ((counter / this.curJob.cost) * 100).toFixed(0);
+        console.log(completion + "%");
+        pbar.style.width = completion + "%";
+        ptext.innerHTML = this.curJob.name;
+
+        // this.curJob.completion = completion + "%";
+        // this.jobqueue[0].completion = completion;
+        /* this.curJob.completion = ((xpPerTick / this.curJob.cost) * 100).toFixed(0); */
+
+
+        if (counter >= this.curJob.cost) {
+          // job is done, handle that. this means adding new inventory, clearing the jobs running flag,
+          // clearing the interval, removing this job from the queue, and calling runJobs
+          this.jobComplete(this.curJob);
+          this.curJob.completion = 0;
+          clearInterval(interval);
+          this.jobsRunning = false;
+          this.jobqueue.shift(); // throw away the first job now that it's done
+          pbar.style.width = "0%";
+          ptext.innerHTML = "";
+          this.runJobs();
+        }
+
+
+      }, 1000);
+
+      /*   const interval = setInterval(() => {
+     counter += this.skills[0].multiplier;
+     this.readTimer = `${counter}/10`;
+
+     // add to our experience, update the display value, level if necessary
+     this.addSkillXp(this.skills[0], this.skills[0].multiplier);
+
+     if (counter >= 10) {
+       clearInterval(interval);
+       this.readTimer = `0/10`;
+       this.inventory[0].count++;
+       if (this.inventory[0].count >= 5) {
+         this.storyText = this.storyTexts[1];
+         this.loveButtonDisabled = false;
+       }
+       if (this.inventory[0].count >= 10) {  // i need to update the story text to reflect the analyze button working,
+         // but doing that requires fixing where i change for the character button and
+         // i'm trying to get other stuff working first
+         this.analButtonDisabled = false;
+       }
+     }
+   }, 1000); */
+
+      //
+
+
 
     },
 
+    getSkillFromJob(j) {
+      let skillname = j.skill;
+      console.log(skillname);
+
+      for (let i in this.skills) {
+        console.log(this.skills[i].name);
+        if (this.skills[i].name === skillname) {
+          return this.skills[i];
+        }
+      }
+      return;
+    },
+
+    // can we afford this job
+    canAfford(j) {
+      let canWe = true; // be optimistic
+
+      // we loop through all the keys in the
+      // consumes field of the job and make
+      // sure that we have at least that many of
+      // that item in stock. if the answer for any
+      // item is no, then we can't afford it
+      for (let k in Object.keys(j.consumes)) {
+        // refactor all this later. right now i'm just going to do it dumb
+        if (k === 'Page') {
+
+          if (this.inventory[0].count < j.consumes[k]) {
+            canWe = false;
+
+          }
+        }
+      }
+
+      return canWe;
+
+
+    },
+
+    jobSpend(j) {
+
+      if (j.consumes.Page > 0) {
+        this.inventory[0].count -= j.consumes.Page;
+      }
+
+      if (j.consumes.CharLove > 0) {
+        this.inventory[1].count -= j.consumes.CharLove;
+      }
+
+      if (j.consumes.TropeFragment > 0) {
+        this.inventory[2].count -= j.consumes.TropeFragment;
+      }
+
+    },
+
+    jobComplete(j) {
+      // lets add the new production
+
+      if (j.produces.Page > 0) {
+        this.inventory[0].count += j.produces.Page;
+        if (this.inventory[0].count >= 5) {
+          this.loveButtonDisabled = false;
+        }
+        if (this.inventory[0].count >= 10) {
+          this.analButtonDisabled = false;
+        }
+
+      }
+
+      if (j.produces.CharLove > 0) {
+        this.inventory[1].count += j.produces.CharLove;
+      }
+
+      if (j.produces.TropeFragment > 0) {
+        this.inventory[2].count += j.produces.TropeFragment;
+      }
+
+
+    },
 
     // this is how a job gets added on to the queue
     queueJob(job) {
@@ -366,60 +576,63 @@ export default {
     // is we call queueJob
     readPage() {
       this.queueJob(this.jobs[0]);
-      let counter = 0;
 
-
-      const interval = setInterval(() => {
-        counter += this.skills[0].multiplier;
-        this.readTimer = `${counter}/10`;
-
-        // add to our experience, update the display value, level if necessary
-        this.addSkillXp(this.skills[0], this.skills[0].multiplier);
-
-        if (counter >= 10) {
-          clearInterval(interval);
-          this.readTimer = `0/10`;
-          this.inventory[0].count++;
-          if (this.inventory[0].count >= 5) {
-            this.storyText = this.storyTexts[1];
-            this.loveButtonDisabled = false;
-          }
-          if (this.inventory[0].count >= 10) {  // i need to update the story text to reflect the analyze button working,
-            // but doing that requires fixing where i change for the character button and
-            // i'm trying to get other stuff working first
-            this.analButtonDisabled = false;
-          }
-        }
-      }, 1000);
+      /*   const interval = setInterval(() => {
+           counter += this.skills[0].multiplier;
+           this.readTimer = `${counter}/10`;
+   
+           // add to our experience, update the display value, level if necessary
+           this.addSkillXp(this.skills[0], this.skills[0].multiplier);
+   
+           if (counter >= 10) {
+             clearInterval(interval);
+             this.readTimer = `0/10`;
+             this.inventory[0].count++;
+             if (this.inventory[0].count >= 5) {
+               this.storyText = this.storyTexts[1];
+               this.loveButtonDisabled = false;
+             }
+             if (this.inventory[0].count >= 10) {  // i need to update the story text to reflect the analyze button working,
+               // but doing that requires fixing where i change for the character button and
+               // i'm trying to get other stuff working first
+               this.analButtonDisabled = false;
+             }
+           }
+         }, 1000); */
     }, // readPage
 
     loveCharacter() {
-      let counter = 0;
+      this.queueJob(this.jobs[1]);
 
-      this.addSkillXp(this.skills[1], this.skills[1].multiplier);
-
-
-
-      const interval = setInterval(() => {
-        counter += this.skills[1].multiplier;
-        this.loveTimer = `${counter}/20`;
-
-        this.addSkillXp(this.skills[1], this.skills[1].multiplier);
-
-        if (counter >= 20) {
-          clearInterval(interval);
-          this.loveTimer = `0/20`;
-          this.inventory[1].count++;     // add a loved character
-          this.inventory[0].count -= 5;  // remove 5 read pages
-          if (this.inventory[0].count < 5) {
-            this.loveButtonDisabled = true;
-          }
-
-        }
-      }, 1000);
+      /*      let counter = 0;
+      
+            this.addSkillXp(this.skills[1], this.skills[1].multiplier);
+      
+      
+      
+            const interval = setInterval(() => {
+              counter += this.skills[1].multiplier;
+              this.loveTimer = `${counter}/20`;
+      
+              this.addSkillXp(this.skills[1], this.skills[1].multiplier);
+      
+              if (counter >= 20) {
+                clearInterval(interval);
+                this.loveTimer = `0/20`;
+                this.inventory[1].count++;     // add a loved character
+                this.inventory[0].count -= 5;  // remove 5 read pages
+                if (this.inventory[0].count < 5) {
+                  this.loveButtonDisabled = true;
+                }
+      
+              }
+            }, 1000); */
     }, // loveCharacter
 
     analText() {
+      this.queueJob(this.jobs[2]);
+
+      /*
       let counter = 0;
       const interval = setInterval(() => {
         counter++;
@@ -437,7 +650,7 @@ export default {
             this.analButtonDisabled = true;
           }
         }
-      }, 1000);
+      }, 1000); */
     }, // analText
 
     formatDisplayNumber(v) {
@@ -457,30 +670,30 @@ export default {
       // that if necessary, then we set the rounded display versions and return
       skill.canonXp += xp;
       skill.canonDisplayXp = this.formatDisplayNumber(skill.canonXp);
-        if (skill.canonXp > skill.canonXpNeeded) {
-          skill.canonLevel++;
-          skill.canonMultiplier *= this.canonMultGrowthFactor;
-          skill.canonXpNeeded *= this.canonXpGrowthFactor;
-          skill.canonXp = 0;
-          skill.canonDisplayXp = 0;
-          skill.canonDisplayXpNeeded = this.formatDisplayNumber(skill.canonXpNeeded);
-          skill.canonDisplayMultiplier = this.formatDisplayNumber(skill.canonMultiplier);
-          skill.multiplier = skill.canonMultiplier * skill.wipMultiplier;
-        }
+      if (skill.canonXp > skill.canonXpNeeded) {
+        skill.canonLevel++;
+        skill.canonMultiplier *= this.canonMultGrowthFactor;
+        skill.canonXpNeeded *= this.canonXpGrowthFactor;
+        skill.canonXp = 0;
+        skill.canonDisplayXp = 0;
+        skill.canonDisplayXpNeeded = this.formatDisplayNumber(skill.canonXpNeeded);
+        skill.canonDisplayMultiplier = this.formatDisplayNumber(skill.canonMultiplier);
+        skill.multiplier = skill.canonMultiplier * skill.wipMultiplier;
+      }
 
-        skill.wipXp += xp;
-        skill.wipDisplayXp = this.formatDisplayNumber(skill.wipXp);
+      skill.wipXp += xp;
+      skill.wipDisplayXp = this.formatDisplayNumber(skill.wipXp);
 
-        if (skill.wipXp > skill.wipXpNeeded) {
-          skill.wipLevel++;
-          skill.wipMultiplier *= this.wipMultGrowthFactor;
-          skill.wipXpNeeded *= this.wipXpGrowthFactor;
-          skill.wipXp = 0;
-          skill.wipDisplayXp = 0;
-          skill.wipDisplayXpNeeded = this.formatDisplayNumber(skill.wipXpNeeded);
-          skill.wipDisplayMultiplier = this.formatDisplayNumber(skill.wipMultiplier);
-          skill.multiplier = skill.canonMultiplier * skill.wipMultiplier;
-        }
+      if (skill.wipXp > skill.wipXpNeeded) {
+        skill.wipLevel++;
+        skill.wipMultiplier *= this.wipMultGrowthFactor;
+        skill.wipXpNeeded *= this.wipXpGrowthFactor;
+        skill.wipXp = 0;
+        skill.wipDisplayXp = 0;
+        skill.wipDisplayXpNeeded = this.formatDisplayNumber(skill.wipXpNeeded);
+        skill.wipDisplayMultiplier = this.formatDisplayNumber(skill.wipMultiplier);
+        skill.multiplier = skill.canonMultiplier * skill.wipMultiplier;
+      }
 
 
     },
@@ -503,6 +716,34 @@ p,
 td {
   color: #fff;
 }
+
+
+/* progress bar stuff */
+
+.progress-text {
+  position: absolute;
+  top: 5%;
+  left: 0.5em;
+  bottom: 0%;
+  color: #fff;
+}
+
+.progress-bar {
+  margin-top: 0.05em;
+  position: relative;
+  background-color: rgb(12, 101, 173);
+  width: 100%;
+}
+
+.progress-fill {
+  height: 1.6em;
+  background-color: rgb(46, 148, 231);
+  transition: width 0.3s ease-in-out;
+
+}
+
+
+
 
 /* style tabs */
 /* styles for tab buttons */
@@ -575,9 +816,17 @@ td {
 
 /* Style the center box */
 .center-box {
-  width: calc(60% - 40px);
+  width: calc(40% - 40px);
   float: left;
 }
+
+/* Style the queue box */
+.queue-box {
+  width: calc(20% - 40px);
+  /* Adjust width as needed */
+  float: left;
+}
+
 
 /* Style the right box */
 .right-box {
@@ -709,4 +958,5 @@ button:disabled {
   font-size: 24px;
   color: #ddd;
   margin-left: 10px;
-}</style>
+}
+</style>
