@@ -2,10 +2,12 @@
   <div class="app">
     <div class="tab-buttons">
       <button @click="activateTab(1)" :class="{ active: activeTab === 1 }">Runtime</button>
-      <button @click="activateTab(2)" :class="{ active: activeTab === 2 }">Automation</button>
-      <button @click="activateTab(3)" :class="{ active: activeTab === 3 }">Upgrades</button>
-      <button @click="activateTab(4)" :class="{ active: activeTab === 4 }">Prestige</button>
-      <button @click="activateTab(5)" :class="{ active: activeTab === 5 }">Statistics</button>
+      <button @click="activateTab(2)" :class="{ active: activeTab === 2 }">Your fic</button>
+      <button @click="activateTab(3)" :class="{ active: activeTab === 3 }">Automation</button>
+      <button @click="activateTab(4)" :class="{ active: activeTab === 4 }">Upgrades</button>
+      <button @click="activateTab(5)" :class="{ active: activeTab === 5 }">Prestige</button>
+      <button @click="activateTab(6)" :class="{ active: activeTab === 6 }">How to play</button>
+      <button @click="activateTab(7)" :class="{ active: activeTab === 7 }">Statistics</button>
     </div>
 
     <div class="tab-content">
@@ -59,6 +61,22 @@
             <button @click="analText" :disabled="analButtonDisabled">Analyze Text</button>
             <div class="timer">{{ analTimer }}</div>
           </div>
+
+          <div class="button-container">
+            <button @click="job4">Job 4</button>
+            <div class="timer">{{ job4Timer }}</div>
+          </div>
+          <div class="button-container">
+            <button @click="job5">Job 5</button>
+            <div class="timer">{{ job5Timer }}</div>
+          </div>
+          <div class="button-container">
+            <button @click="job6">Job 6</button>
+            <div class="timer">{{ job6Timer }}</div>
+          </div>
+
+
+
         </div>
 
         <div class="box queue-box">
@@ -66,21 +84,25 @@
           <div class="go-box">
             <button @click="runJobs">Go!</button>
           </div>
-          <div class="progress-bar" id="jobQueueItem1" width="100%">
-            <!--                <div class="progress-fill" id="jobQueueFill1" style="width: 54%" > </div> -->
-            <div class="progress-text" id="jobQueueItemName1"> </div>
+          <div class="progress-container">
+            <div class="progress-bar" id="jobQueueItem1" width="100%">
+              <!--                <div class="progress-fill" id="jobQueueFill1" style="width: 54%" > </div> -->
 
-            <div class="progress-fill" id="jobQueueFill1"> </div>
+              <div class="progress-fill" id="jobQueueFill1"> </div>
+              <div class="progress-text" id="jobQueueItemName1"> </div>
 
+            </div>
           </div>
-          <hr />
+          <hr class="section-divider" />
 
           <ul class="job-queue">
             <li v-for="item in jobqueue" :key="item.id">
-              <div class="progress-bar">
+              <!--  <div class="progress-bar">
                 <div class="progress-fill progressFill"></div>
                 <div class="progress-text">{{ item.name }}</div>
-              </div>
+              </div> -->
+              {{ item.name }}
+
             </li>
           </ul>
 
@@ -99,8 +121,28 @@
         </div>
 
       </div>
+
+
       <div class="tab-2" style="display: none">
         <!-- content for tab 2, which is where i plan to put automation controls -->
+        <div class="box left-box">
+
+        </div>
+
+        <div class="box center-box">
+          <h2>Your fic</h2>
+          <p>This will eventually be where you build your fic</p>
+        </div>
+
+        <div class="box right-box">
+
+        </div>
+      </div>
+
+
+
+      <div class="tab-3" style="display: none">
+        <!-- content for tab 3, which is where i plan to put automation controls -->
         <div class="box left-box">
 
         </div>
@@ -115,8 +157,8 @@
         </div>
       </div>
 
-      <div class="tab-3" style="display: none">
-        <!-- content for tab 3, which is where upgrades will be. that's probably not right, this will
+      <div class="tab-4" style="display: none">
+        <!-- content for tab 4, which is where upgrades will be. that's probably not right, this will
              probably actually end up being where the lists of characters, plots, tropes, settings, etc
              are stored and selected. i guess that can be 'upgrades' if you kinda squint at it-->
         <div class="box left-box">
@@ -134,7 +176,7 @@
         </div>
       </div>
 
-      <div class="tab-4" style="display: none">
+      <div class="tab-5" style="display: none">
         <!-- content for tab 4 -->
         <div class="box left-box">
 
@@ -152,14 +194,31 @@
 
       </div>
 
-      <div class="tab-5" style="display: none">
-        <!-- content for tab 5 -->
+      <div class="tab-6" style="display: none">
+        <!-- content for tab 6 -->
         <div class="box left-box">
 
         </div>
 
         <div class="box center-box">
-          <h2>Automation</h2>
+          <h2>How to play</h2>
+          <p>Keep reading pages and buying character loves and trope fragments.</p>
+        </div>
+
+        <div class="box right-box">
+
+        </div>
+
+      </div>
+
+      <div class="tab-7" style="display: none">
+        <!-- content for tab 6 -->
+        <div class="box left-box">
+
+        </div>
+
+        <div class="box center-box">
+          <h2>Statistics</h2>
           <p>This will eventually be where the statistics are found</p>
         </div>
 
@@ -168,6 +227,7 @@
         </div>
 
       </div>
+
     </div>
   </div>
 </template>
@@ -182,8 +242,30 @@ export default {
 
       storyTexts: [
         "You need to create, but first you must find inspiration. Read something. Read a lot of things. Read 5 things.",
-        "Some of these characters you meet resonate at a deeper level of your self",
+        // backticks on this next string because it is multi line
+        `You are going to write a fan-fic. But first you must read a lot, learn to love characters, analyze text to
+         identify standard plots and identify tropes, and a bunch of other skills before you can produce your first fic.
+         
+         To start with you need to read pages, love characters, and analyze text. Every time you read a page it will add
+         one to your inventory. Loving a character costs 5 pages. Analyzing a text costs 10. `,
         "You have found inspiration. Now go and create something amazing!"
+      ],
+
+      // gameStates is an array of the states that you pass through as you make a run through the
+      // game. in this first pass,the current game state controls the storytext that is displayed
+      // and updates it to the next storytext when all of the pre-reqs have been satisfied. eventually
+      // we'll complxify that so that we can change what jobs are available, what inventory slots are displayed,
+      // and so on as we move through the game on any particular loop
+      gameStates: [
+        // this is our starting state
+        { 
+          storyText: "You need to create, but first you must find inspiration. Read something. Read a lot of things. Read 5 things.",
+          advCrit:  [ 
+            function() { this.stats.currentRun.pagesRead > 5; },
+          ],
+        },
+
+
       ],
 
       skills: [
@@ -351,6 +433,34 @@ export default {
       curJob: {},
       isTicking: false,  // not sure i'm going to use this in the job loop yet
 
+      // how many times per second do we tick
+      tickScaleFactor: 30,
+
+      // the current game state index
+      curGameStateIdx: 0,
+
+      // the stats object
+      stats: {
+        currentRun: {
+          pagesRead: 0,
+          charactersLoved: 0,
+          tropesExtracted: 0,
+
+        },
+
+        lastRun: {
+          pagesRead: 0,
+          charactersLoved: 0,
+          tropesExtracted: 0,
+        },
+      
+        alltime: {
+          pagesRead: 0,
+          charactersLoved: 0,
+          tropesExtracted: 0,
+        },
+      }
+
 
 
     }
@@ -419,7 +529,7 @@ export default {
       // we've earned for this job during this execution
       // so that we can tell when we've done enough and
       // the job is complete
-      let xpPerTick = s.multiplier;
+      let xpPerTick = s.multiplier / this.tickScaleFactor;
 
       var pbar = document.getElementById("jobQueueFill1");
       //var pbar = document.getElementById("jobQueueItem1");
@@ -440,44 +550,22 @@ export default {
 
         if (counter >= this.curJob.cost) {
           // job is done, handle that. this means adding new inventory, clearing the jobs running flag,
-          // clearing the interval, removing this job from the queue, and calling runJobs
+          // clearing the interval, removing this job from the queue, checking if we have a game state
+          // advance and handling it if so, and calling runJobs
           this.jobComplete(this.curJob);
           this.curJob.completion = 0;
           clearInterval(interval);
           this.jobsRunning = false;
           this.jobqueue.shift(); // throw away the first job now that it's done
+          pbar.classList.add('instant');
           pbar.style.width = "0%";
+          pbar.classList.remove('instant');
           ptext.innerHTML = "";
           this.runJobs();
         }
 
 
-      }, 1000);
-
-      /*   const interval = setInterval(() => {
-     counter += this.skills[0].multiplier;
-     this.readTimer = `${counter}/10`;
-
-     // add to our experience, update the display value, level if necessary
-     this.addSkillXp(this.skills[0], this.skills[0].multiplier);
-
-     if (counter >= 10) {
-       clearInterval(interval);
-       this.readTimer = `0/10`;
-       this.inventory[0].count++;
-       if (this.inventory[0].count >= 5) {
-         this.storyText = this.storyTexts[1];
-         this.loveButtonDisabled = false;
-       }
-       if (this.inventory[0].count >= 10) {  // i need to update the story text to reflect the analyze button working,
-         // but doing that requires fixing where i change for the character button and
-         // i'm trying to get other stuff working first
-         this.analButtonDisabled = false;
-       }
-     }
-   }, 1000); */
-
-      //
+      }, 1000 / this.tickScaleFactor);
 
 
 
@@ -576,81 +664,14 @@ export default {
     // is we call queueJob
     readPage() {
       this.queueJob(this.jobs[0]);
-
-      /*   const interval = setInterval(() => {
-           counter += this.skills[0].multiplier;
-           this.readTimer = `${counter}/10`;
-   
-           // add to our experience, update the display value, level if necessary
-           this.addSkillXp(this.skills[0], this.skills[0].multiplier);
-   
-           if (counter >= 10) {
-             clearInterval(interval);
-             this.readTimer = `0/10`;
-             this.inventory[0].count++;
-             if (this.inventory[0].count >= 5) {
-               this.storyText = this.storyTexts[1];
-               this.loveButtonDisabled = false;
-             }
-             if (this.inventory[0].count >= 10) {  // i need to update the story text to reflect the analyze button working,
-               // but doing that requires fixing where i change for the character button and
-               // i'm trying to get other stuff working first
-               this.analButtonDisabled = false;
-             }
-           }
-         }, 1000); */
     }, // readPage
 
     loveCharacter() {
       this.queueJob(this.jobs[1]);
-
-      /*      let counter = 0;
-      
-            this.addSkillXp(this.skills[1], this.skills[1].multiplier);
-      
-      
-      
-            const interval = setInterval(() => {
-              counter += this.skills[1].multiplier;
-              this.loveTimer = `${counter}/20`;
-      
-              this.addSkillXp(this.skills[1], this.skills[1].multiplier);
-      
-              if (counter >= 20) {
-                clearInterval(interval);
-                this.loveTimer = `0/20`;
-                this.inventory[1].count++;     // add a loved character
-                this.inventory[0].count -= 5;  // remove 5 read pages
-                if (this.inventory[0].count < 5) {
-                  this.loveButtonDisabled = true;
-                }
-      
-              }
-            }, 1000); */
     }, // loveCharacter
 
     analText() {
       this.queueJob(this.jobs[2]);
-
-      /*
-      let counter = 0;
-      const interval = setInterval(() => {
-        counter++;
-        this.analTimer = `${counter}/30`;
-
-        this.addSkillXp(this.skills[2], this.skills[2].multiplier);
-
-
-        if (counter >= 30) {
-          clearInterval(interval);
-          this.analTimer = '0/30';
-          this.inventory[2].count++;  // add a trope fragment
-          this.inventory[0].count -= 10; // remove 10 read pages
-          if (this.inventory[0].count < 10) {
-            this.analButtonDisabled = true;
-          }
-        }
-      }, 1000); */
     }, // analText
 
     formatDisplayNumber(v) {
@@ -726,6 +747,7 @@ td {
   left: 0.5em;
   bottom: 0%;
   color: #fff;
+  font-weight: bold;
 }
 
 .progress-bar {
@@ -736,9 +758,31 @@ td {
 }
 
 .progress-fill {
+  position: absolute;
+  /*  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); */
   height: 1.6em;
   background-color: rgb(46, 148, 231);
-  transition: width 0.3s ease-in-out;
+
+  transition-property: width;
+  transition-duration: 0s, 0.3s; /* Two transition durations */
+  transition-timing-function: linear, ease-in-out; /* Two transition timing functions */
+
+
+  /* transition: width 0.3s ease-in-out; */
+
+}
+
+.progress.instant {
+  transition-duration: 0s !important; /* Override the transition duration to be instant */
+}
+
+
+.progress-container {
+  margin-bottom: 20px;
+  padding: 2px;
+
 
 }
 
@@ -749,7 +793,8 @@ td {
 /* styles for tab buttons */
 .tab-buttons {
   display: flex;
-  justify-content: space-between;
+  /* justify-content: space-between; */
+  justify-content: center;
   /* margin-bottom: 20px; */
 }
 
@@ -757,13 +802,14 @@ td {
   font-size: 16px;
   padding: 10px;
   border: none;
-  background-color: #423434;
+  background-color: #2c2929; 
   cursor: pointer;
 }
 
 .tab-buttons button.active {
-  background-color: #007aff;
-  color: #423434;
+  background-color: #423434;
+  color: #fff;
+  font-weight: bold;
 }
 
 /* styles for tab content */
@@ -785,6 +831,13 @@ td {
 
 .tab-content>div:not(.tab-1) {
   display: none;
+}
+
+/* go box */
+.go-box {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding: 5px;
 }
 
 /* style the go button */
@@ -890,7 +943,9 @@ td {
   color: #ddd;
 }
 
-
+.section-divider {
+  margin-top: 20px;
+}
 
 /* Style the skill widget */
 .skill-widget {
