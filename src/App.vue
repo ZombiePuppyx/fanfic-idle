@@ -63,15 +63,15 @@
           </div>
 
           <div class="button-container">
-            <button @click="job4">Job 4</button>
+            <button @click="handleJobButton(4)">Study Character</button>
             <div class="timer">{{ job4Timer }}</div>
           </div>
           <div class="button-container">
-            <button @click="job5">Job 5</button>
+            <button @click="handleJobButton(5)">Discover Plot</button>
             <div class="timer">{{ job5Timer }}</div>
           </div>
           <div class="button-container">
-            <button @click="job6">Job 6</button>
+            <button @click="handleJobButton(6)">Job 6</button>
             <div class="timer">{{ job6Timer }}</div>
           </div>
 
@@ -79,7 +79,7 @@
 
         </div>
 
-        <div class="box queue-box">
+        <div class="box third-box">
           <p>THE QUEUE SHALL LIVE HERE, FEAR ME AND TREMBLE</p>
           <div class="go-box">
             <button @click="runJobs">Go!</button>
@@ -101,7 +101,7 @@
                 <div class="progress-fill progressFill"></div>
                 <div class="progress-text">{{ item.name }}</div>
               </div> -->
-              {{ item.name }}
+              {{item.name }}
 
             </li>
           </ul>
@@ -124,17 +124,60 @@
 
 
       <div class="tab-2" style="display: none">
-        <!-- content for tab 2, which is where i plan to put automation controls -->
+        <!-- content for tab 2, which is where you'll select and construct your fic -->
         <div class="box left-box">
+          <h2>Characters</h2>
+          <div>
+            <button @click="unlockCharacter" :disabled="unlockCharacterButtonDisabled">Unlock character</button>
+          </div>
+
+          <p>In here is where we're gonna put the list of unlocked characters.</p>
+
+          <ul class="character-list">
+            <li v-for="item in characters" :key="item.id">
+              <!--  <div class="progress-bar">
+                <div class="progress-fill progressFill"></div>
+                <div class="progress-text">{{ item.name }}</div>
+              </div> -->
+              {{item.name }}
+
+            </li>
+          </ul>
+
 
         </div>
 
         <div class="box center-box">
           <h2>Your fic</h2>
-          <p>This will eventually be where you build your fic</p>
+          <p>This will eventually be where you build your fic. We'll have inputs to let you select the character
+             for the current fic and the plot and any tropes and blahbity blah blah blah.
+          </p>
+        </div>
+
+        <div class="box third-box">
+          <h2>Plots</h2>
+          <div>
+            <button @click="unlockPlot" :disabled="unlockPlotButtonDisabled">Unlock plot</button>
+          </div>
+
+          <p>In here is where we're gonna put the list of unlocked plots.</p>
+
+          <ul class="plot-list">
+            <li v-for="item in plots" :key="item.id">
+              <!--  <div class="progress-bar">
+                <div class="progress-fill progressFill"></div>
+                <div class="progress-text">{{ item.name }}</div>
+              </div> -->
+              {{item.name }}
+
+            </li>
+          </ul>
+
+
         </div>
 
         <div class="box right-box">
+          Another list in the box, probably plots.
 
         </div>
       </div>
@@ -229,10 +272,46 @@
       </div>
 
     </div>
-  </div>
+
+
+    <!-- POPUPS -->
+
+    <div class="popup-box" id="main-popup">
+      <button class="close-button" @click="closePopup('main-popup')"></button>
+      <!-- Content for the popup -->
+      <div class="popup-content">
+        <h2>This is the popup banner up here</h2>
+        <div>
+          <p>This is the text area of the popup.</p>
+        </div>
+      </div>
+<!--      <button class="close-button bottom" @click="closePopup"></button> -->
+    </div>
+
+    <div class="popup-box" id="character-unlock-popup">
+      <button class="close-button" @click="closePopup('character-unlock-popup')"></button>
+      <!-- Content for the popup -->
+      <div class="popup-content">
+        <h2>You've unlocked a character!</h2>
+        <div>
+          <p id="unlockedCharacterPopupDisplayText">This is the text area of the popup.</p>
+        </div>
+      </div>
+<!--      <button class="close-button bottom" @click="closePopup"></button> -->
+    </div>
+
+
+
+
+
+
+  </div> <!-- div.app -->
 </template>
 
 <script>
+import { characters, plots } from './ficdata.js';
+// import plots from './ficdata.js';
+
 export default {
   data() {
     return {
@@ -251,6 +330,11 @@ export default {
         "You have found inspiration. Now go and create something amazing!"
       ],
 
+      // the stuff we imported
+      characters: [ ],
+      plots: [ ],
+
+
       // gameStates is an array of the states that you pass through as you make a run through the
       // game. in this first pass,the current game state controls the storytext that is displayed
       // and updates it to the next storytext when all of the pre-reqs have been satisfied. eventually
@@ -258,12 +342,116 @@ export default {
       // and so on as we move through the game on any particular loop
       gameStates: [
         // this is our starting state
-        { 
+        {
           storyText: "You need to create, but first you must find inspiration. Read something. Read a lot of things. Read 5 things.",
-          advCrit:  [ 
-            function() { this.stats.currentRun.pagesRead > 5; },
+          advanceCriteria: [
+            () => {
+              // console.log("in the advcrit callback for state 0 and pagesRead is (" + this.stats.currentRun.pagesRead + ")");
+              return this.stats.currentRun.pagesRead >= 5;
+            },
+          ],
+
+          advanceState: [
+            () => {
+              // turn on the loveChar button here
+              this.loveButtonDisabled = false;
+              
+
+              // this is what we call to advance to the next state. it does any clean up that is required on the current
+              // state in order to do that and then advances the state index pointer by one. i may refactor how this works
+              // while doing the initial implementation
+            },
+          ],
+
+          enterState: [
+            () => {
+              // handle entering this state here
+            },
           ],
         },
+
+        // this state is after the initial state, but before trope fragments are unlocked
+        {
+          storyText: `You are going to write a fan-fic. But first you must read a lot, learn to love characters, analyze text to
+         identify standard plots and identify tropes, and a bunch of other skills before you can produce your first fic.`,
+          advanceCriteria: [
+            () => { return this.stats.currentRun.pagesRead >= 10; },
+          ],
+          advanceState: [ 
+            () => {
+              // turn on the analText button
+              this.analButtonDisabled = false;
+
+            },
+          ],
+
+          enterState: [
+            () => {
+              // handle entering this state here
+              this.storyText = this.gameStates[this.curGameStateIdx].storyText;
+            },
+          ],
+
+        },
+
+        // this state is after trope fragments are unlocked
+        {
+          storyText: `You can feel connections being made in your mind and in your soul. These characters and their stories speak
+                      to you in a way that nothing has before. Something deep inside you tells you that you need to collect 20
+                      loved characters and 20 extracted tropes. `,
+          advanceCriteria: [
+            () => { 
+              return this.stats.currentRun.tropesExtracted >= 3 && this.stats.currentRun.charactersLoved >= 3;
+ 
+            },
+          ],
+          advanceState: [
+            () => {
+
+
+            }
+          ],
+
+          enterState: [
+            () => {
+              // handle entering this state here
+              this.storyText = this.gameStates[this.curGameStateIdx].storyText;
+
+            },
+          ],
+
+
+        },
+
+        // we've collected 20 character loves and 20 trope fragments. time to offer the chance to 
+        // get a trope or a character
+        {
+          storyText: `You can now unlock a character and a plot over on the 'Your fic' tab, or you can stay here
+                      and keep collecting character and plot unlocks or pages, loves, and tropes. `,
+          advanceCriteria: [
+            () => { 
+              return false; // nothing past here yet
+            },
+          ],
+          advanceState: [
+            () => {
+
+
+            }
+          ],
+
+          enterState: [
+            () => {
+              // handle entering this state here
+              this.storyText = this.gameStates[this.curGameStateIdx].storyText;
+              this.unlockCharacterButtonDisabled = false;
+              this.unlockPlotButtonDisabled = false;
+
+            },
+          ],
+
+        },
+
 
 
       ],
@@ -377,6 +565,25 @@ export default {
           consumes: { Page: 10 },
         },
 
+        {
+          id: 4,
+          name: 'StudyCharacter',
+          cost: 300,
+          skill: 'Characterization',
+          produces: { CharacterUnlock: 1 },
+          consumes: { CharLove: 3 },
+        },
+
+        {
+          id: 5,
+          name: 'FindPlot',
+          cost: 300,
+          skill: 'Analysis',
+          produces: { PlotUnlock: 1 },
+          consumes: { TropeFragment: 3 },
+        },
+
+
       ],
 
       items: [
@@ -394,12 +601,27 @@ export default {
           id: 3,
           name: 'TropeFragment',
         },
+
+        {
+          id: 4,
+          name: 'CharacterUnlock',
+        },
+
+        {
+          id: 5,
+          name: 'PlotUnlock',
+        },
+
+
       ],
 
       inventory: [
         { id: 1, name: "Pages read", count: 0 },
         { id: 2, name: "Characters loved", count: 0 },
-        { id: 3, name: "Trope fragments", count: 0 }
+        { id: 3, name: "Trope fragments", count: 0 },
+        { id: 4, name: "Character unlocks", count: 0 },
+        { id: 5, name: "Plot unlocks", count: 0 },
+
       ],
 
       // dummyjob: { id: 1, job: "None",},
@@ -407,13 +629,18 @@ export default {
         //  this.dummyjob,
 
       ],
-      readTimer: '0/10', // Added timer variable here
-      loveTimer: '0/20', // the right way for this to work is for these timers to actually
-      analTimer: '0/30', // be the job cost and for that to be carried around in a job object
+      readTimer: 'Cost: 10 reading', // Added timer variable here
+      loveTimer: 'Cost: 20 characterization', // the right way for this to work is for these timers to actually
+      analTimer: 'Cost: 30 analysis', // be the job cost and for that to be carried around in a job object
       // we'll do that Real Soon Now
+      job4Timer: 'Cost: 300 characterization',
+      job5Timer: 'Cost: 300 analysis',
+      job6Timer: '0/60',
 
       loveButtonDisabled: true,
       analButtonDisabled: true,
+      unlockCharacterButtonDisabled: true,
+      unlockPlotButtonDisabled: true,
 
       // xp growth factor is how much more xp is needed for the next level
       canonXpGrowthFactor: 1.02,
@@ -445,6 +672,8 @@ export default {
           pagesRead: 0,
           charactersLoved: 0,
           tropesExtracted: 0,
+          charactersUnlocked: 0,
+          plotsUnlocked: 0,
 
         },
 
@@ -452,14 +681,20 @@ export default {
           pagesRead: 0,
           charactersLoved: 0,
           tropesExtracted: 0,
+          charactersUnlocked: 0,
+          plotsUnlocked: 0,
+
         },
-      
+
         alltime: {
           pagesRead: 0,
           charactersLoved: 0,
           tropesExtracted: 0,
+          charactersUnlocked: 0,
+          plotsUnlocked: 0,
+
         },
-      }
+      },
 
 
 
@@ -539,7 +774,7 @@ export default {
         counter += xpPerTick;
         this.addSkillXp(s, xpPerTick);
         var completion = ((counter / this.curJob.cost) * 100).toFixed(0);
-        console.log(completion + "%");
+        // console.log(completion + "%");
         pbar.style.width = completion + "%";
         ptext.innerHTML = this.curJob.name;
 
@@ -561,6 +796,27 @@ export default {
           pbar.style.width = "0%";
           pbar.classList.remove('instant');
           ptext.innerHTML = "";
+          // check if we finished the current gameState. as soon as an advancement criteria fails we'll mark
+          // the done var as false and bail out of the loop. if we get past the loop with done still equal to true
+          // it means that every advancement criteria was met
+          let done = true;
+          for (let idx = 0; idx < this.gameStates[this.curGameStateIdx].advanceCriteria.length; idx++) {
+            let test = this.gameStates[this.curGameStateIdx].advanceCriteria[idx]();
+            if (test === false) {
+              done = false;
+              break;
+            }
+          }
+
+          if (done) {
+            // we're done, we need to advance the state
+            this.gameStates[this.curGameStateIdx].advanceState[0]();
+            this.curGameStateIdx++;
+
+            // now call enterstate for the new gamestate
+            this.gameStates[this.curGameStateIdx].enterState[0]();
+          }
+
           this.runJobs();
         }
 
@@ -573,10 +829,10 @@ export default {
 
     getSkillFromJob(j) {
       let skillname = j.skill;
-      console.log(skillname);
+      // console.log(skillname);
 
       for (let i in this.skills) {
-        console.log(this.skills[i].name);
+        // console.log(this.skills[i].name);
         if (this.skills[i].name === skillname) {
           return this.skills[i];
         }
@@ -630,21 +886,37 @@ export default {
 
       if (j.produces.Page > 0) {
         this.inventory[0].count += j.produces.Page;
+        this.stats.currentRun.pagesRead++;
+
         if (this.inventory[0].count >= 5) {
-          this.loveButtonDisabled = false;
+          //  this.loveButtonDisabled = false;
         }
         if (this.inventory[0].count >= 10) {
-          this.analButtonDisabled = false;
+          //  this.analButtonDisabled = false;
         }
 
       }
 
       if (j.produces.CharLove > 0) {
         this.inventory[1].count += j.produces.CharLove;
+        this.stats.currentRun.charactersLoved++;
+
       }
 
       if (j.produces.TropeFragment > 0) {
         this.inventory[2].count += j.produces.TropeFragment;
+        this.stats.currentRun.tropesExtracted++;
+
+      }
+
+      if (j.produces.CharacterUnlock > 0) {
+        this.inventory[3].count += j.produces.CharacterUnlock;
+        this.stats.currentRun.charactersUnlocked++;
+      }
+
+      if (j.produces.PlotUnlock > 0) {
+        this.inventory[4].count += j.produces.PlotUnlock;
+        this.stats.currentRun.plotsUnlocked++;
       }
 
 
@@ -652,13 +924,40 @@ export default {
 
     // this is how a job gets added on to the queue
     queueJob(job) {
-      if (this.jobqueue.length >= 5) {
+      if (this.jobqueue.length >= 500) {
         return; // max queue length. parameterize this eventually, dude
       }
       this.jobqueue.push(job);
     },
 
 
+    handleJobButton(num) {
+      // 1 is readPage
+      if(num === 1) {
+        this.queueJOb(this.jobs[0]);
+        return;
+      }
+      // 2 is loveChar
+      else if (num === 2) {
+        this.queueJob(this.jobs[1]);
+      }
+      // 3 is analtext
+      else if (num === 3) {
+        this.queueJob(this.jobs[2]);
+      }
+      // 4 is character study
+      else if (num === 4) {
+        this.queueJob(this.jobs[3]);
+      }
+      // 5 is find plot
+      else if (num === 5) {
+        this.queueJob(this.jobs[4]);
+      }
+      else {
+        console.log("unknown job (" + num + ")");
+      }
+
+    },
 
     // totally refactoring all of this. in the new design all that happens in the job button handlers
     // is we call queueJob
@@ -674,6 +973,22 @@ export default {
       this.queueJob(this.jobs[2]);
     }, // analText
 
+    // this unlocks a random character. it is called from the characters pane of the your fic tab
+    unlockCharacter() {
+      let i = Math.floor(Math.random() * characters.length);
+      let c = characters[i];
+      this.characters.push(c);
+      console.log(c.name);
+
+    },
+
+    unlockPlot() {
+      let i = Math.floor(Math.random() * plots.length);
+      let p = plots[i];
+      this.plots.push(p);
+      console.log(p.name);
+    },
+
     formatDisplayNumber(v) {
       if (v < 10) {
         return Math.floor(v * 100) / 100;
@@ -683,6 +998,11 @@ export default {
       }
       return Math.floor(v);
 
+    },
+
+    closePopup(name) {
+      let popup = document.getElementById(name);
+      popup.style.display = 'none';
     },
 
     addSkillXp(skill, xp) {
@@ -729,6 +1049,7 @@ export default {
 /* Set the background color to black */
 body {
   background-color: #1e1e1e;
+  color: #ffffff;
 }
 
 /* Set the text color to white */
@@ -766,8 +1087,10 @@ td {
   background-color: rgb(46, 148, 231);
 
   transition-property: width;
-  transition-duration: 0s, 0.3s; /* Two transition durations */
-  transition-timing-function: linear, ease-in-out; /* Two transition timing functions */
+  transition-duration: 0s, 0.3s;
+  /* Two transition durations */
+  transition-timing-function: linear, ease-in-out;
+  /* Two transition timing functions */
 
 
   /* transition: width 0.3s ease-in-out; */
@@ -775,7 +1098,8 @@ td {
 }
 
 .progress.instant {
-  transition-duration: 0s !important; /* Override the transition duration to be instant */
+  transition-duration: 0s !important;
+  /* Override the transition duration to be instant */
 }
 
 
@@ -802,7 +1126,7 @@ td {
   font-size: 16px;
   padding: 10px;
   border: none;
-  background-color: #2c2929; 
+  background-color: #2c2929;
   cursor: pointer;
 }
 
@@ -874,7 +1198,7 @@ td {
 }
 
 /* Style the queue box */
-.queue-box {
+.third-box {
   width: calc(20% - 40px);
   /* Adjust width as needed */
   float: left;
@@ -1014,4 +1338,62 @@ button:disabled {
   color: #ddd;
   margin-left: 10px;
 }
+
+/* Style the popup box */
+.popup-box {
+  position: fixed;
+  display: box;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #333;
+  border: 1px solid #666;
+  border-radius: 5px;
+  padding: 20px;
+  z-index: 9999;
+}
+
+/* Style the border for the popup content */
+.popup-box .popup-content {
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+/* Style the close button */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  background-color: #fff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.close-button::before,
+.close-button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 2px;
+  background-color: #000;
+}
+
+.close-button::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.close-button::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.close-button.bottom {
+  top: auto;
+  bottom: 10px;
+}
+
 </style>
