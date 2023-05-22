@@ -149,9 +149,39 @@
 
         <div class="box center-box">
           <h2>Your fic</h2>
-          <p>This will eventually be where you build your fic. We'll have inputs to let you select the character
-             for the current fic and the plot and any tropes and blahbity blah blah blah.
+          <p>You will eventually unlock more complex story structures, with multiple POVs, love triangles, non-linear
+             narratives, a wider array of bad guys, and myriad other complexifications. For now, though, you can only
+             write a slice of life with a love interest. So go do that.
           </p>
+
+          <div>
+            <label for="selectCharacter">Select a love interest:</label>
+            <select id="selectCharacter" v-model="selectedCharacter">
+              <option v-for="option in characters" :value="option.id" :key="option.id">{{ option.name }}</option>
+            </select>
+          </div>
+          
+          <hr class="section-divider"/>
+
+          <div>
+            <label for="selectPlot">Select a plot:</label>
+            <select id="selectPlot" v-model="selectedPlot">
+              <option v-for="option in plots" :value="option.id" :key="option.id">{{ option.name }}</option>
+            </select>
+          </div>
+
+          <hr class="section-divider"/>
+
+          <div>
+<!--            <button @click="generateFic" :disabled="genFicButtonDisabled">Generate fic</button> -->
+            <button @click="generateFic">Generate fic</button>
+
+          </div>
+
+
+          
+
+
         </div>
 
         <div class="box third-box">
@@ -288,7 +318,8 @@
 <!--      <button class="close-button bottom" @click="closePopup"></button> -->
     </div>
 
-    <div class="popup-box" id="character-unlock-popup">
+
+    <div class="popup-box" id="character-unlock-popup" style="display: none">
       <button class="close-button" @click="closePopup('character-unlock-popup')"></button>
       <!-- Content for the popup -->
       <div class="popup-content">
@@ -301,6 +332,34 @@
     </div>
 
 
+    <div class="popup-box" id="plot-unlock-popup" style="display: none">
+      <button class="close-button" @click="closePopup('plot-unlock-popup')"></button>
+      <!-- Content for the popup -->
+      <div class="popup-content">
+        <h2>You've unlocked a plot!</h2>
+        <div>
+          <p id="unlockedPlotPopupDisplayText">This is the text area of the popup.</p>
+        </div>
+      </div>
+<!--      <button class="close-button bottom" @click="closePopup"></button> -->
+    </div>
+
+
+    <div class="popup-box" id="generated-fic-popup" style="display: none">
+      <button class="close-button" @click="closePopup('generated-fic-popup')"></button>
+      <!-- Content for the popup -->
+      <div class="popup-content">
+        <h2>After all that work, here's your fic</h2>
+        <div>
+          <p id="generatedFicPopupDisplayText">This is the text area of the popup.</p>
+        </div>
+        <hr class="section-divider"/>
+        <div class="button-container">
+          <button @click="restartRun">Restart run</button>
+        </div>
+      </div>
+<!--      <button class="close-button bottom" @click="closePopup"></button> -->
+    </div>
 
 
 
@@ -462,7 +521,7 @@ export default {
           name: 'Reading',
           multiplier: 1,
 
-          wipLevel: 1,
+          wipLevel: 0,
           wipXp: 0,
           wipXpNeeded: 100,
           wipMultiplier: 1,
@@ -470,7 +529,7 @@ export default {
           wipDisplayXpNeeded: 100,
           wipDisplayMultiplier: 1,
 
-          canonLevel: 1,
+          canonLevel: 0,
           canonXp: 0,
           canonXpNeeded: 100,
           canonMultiplier: 1,
@@ -484,7 +543,7 @@ export default {
           name: 'Characterization',
           multiplier: 1,
 
-          wipLevel: 1,
+          wipLevel: 0,
           wipXp: 0,
           wipXpNeeded: 100,
           wipMultiplier: 1,
@@ -492,7 +551,7 @@ export default {
           wipDisplayXpNeeded: 100,
           wipDisplayMultiplier: 1,
 
-          canonLevel: 1,
+          canonLevel: 0,
           canonXp: 0,
           canonXpNeeded: 100,
           canonMultiplier: 1,
@@ -506,7 +565,7 @@ export default {
           name: 'Analysis',
           multiplier: 1,
 
-          wipLevel: 1,
+          wipLevel: 0,
           wipXp: 0,
           wipXpNeeded: 100,
           wipMultiplier: 1,
@@ -514,7 +573,7 @@ export default {
           wipDisplayXpNeeded: 100,
           wipDisplayMultiplier: 1,
 
-          canonLevel: 1,
+          canonLevel: 0,
           canonXp: 0,
           canonXpNeeded: 100,
           canonMultiplier: 1,
@@ -542,7 +601,7 @@ export default {
           name: 'ReadPage',
           cost: 10,
           skill: 'Reading',
-          produces: { Page: 1 },
+          produces: { Page: 10 },
           consumes: {},
 
         },
@@ -552,7 +611,7 @@ export default {
           name: 'LoveCharacter',
           cost: 20,
           skill: 'Characterization',
-          produces: { CharLove: 1 },
+          produces: { CharLove: 10 },
           consumes: { Page: 5 },
         },
 
@@ -561,14 +620,14 @@ export default {
           name: 'AnalyzeText',
           cost: 30,
           skill: 'Analysis',
-          produces: { TropeFragment: 1 },
+          produces: { TropeFragment: 10 },
           consumes: { Page: 10 },
         },
 
         {
           id: 4,
           name: 'StudyCharacter',
-          cost: 300,
+          cost: 3,
           skill: 'Characterization',
           produces: { CharacterUnlock: 1 },
           consumes: { CharLove: 3 },
@@ -577,7 +636,7 @@ export default {
         {
           id: 5,
           name: 'FindPlot',
-          cost: 300,
+          cost: 3,
           skill: 'Analysis',
           produces: { PlotUnlock: 1 },
           consumes: { TropeFragment: 3 },
@@ -665,6 +724,10 @@ export default {
 
       // the current game state index
       curGameStateIdx: 0,
+
+      // the selected character and plot for the actual fic generation
+      selectedCharacter: 0,
+      selectedPlot: 0,
 
       // the stats object
       stats: {
@@ -886,37 +949,27 @@ export default {
 
       if (j.produces.Page > 0) {
         this.inventory[0].count += j.produces.Page;
-        this.stats.currentRun.pagesRead++;
-
-        if (this.inventory[0].count >= 5) {
-          //  this.loveButtonDisabled = false;
-        }
-        if (this.inventory[0].count >= 10) {
-          //  this.analButtonDisabled = false;
-        }
-
+        this.stats.currentRun.pagesRead += j.produces.Page;
       }
 
       if (j.produces.CharLove > 0) {
         this.inventory[1].count += j.produces.CharLove;
-        this.stats.currentRun.charactersLoved++;
-
+        this.stats.currentRun.charactersLoved += j.produces.CharLove;
       }
 
       if (j.produces.TropeFragment > 0) {
         this.inventory[2].count += j.produces.TropeFragment;
-        this.stats.currentRun.tropesExtracted++;
-
+        this.stats.currentRun.tropesExtracted += j.produces.TropeFragment;
       }
 
       if (j.produces.CharacterUnlock > 0) {
         this.inventory[3].count += j.produces.CharacterUnlock;
-        this.stats.currentRun.charactersUnlocked++;
+        this.stats.currentRun.charactersUnlocked += j.produces.CharacterUnlock;
       }
 
       if (j.produces.PlotUnlock > 0) {
         this.inventory[4].count += j.produces.PlotUnlock;
-        this.stats.currentRun.plotsUnlocked++;
+        this.stats.currentRun.plotsUnlocked += j.produces.PlotUnlock;
       }
 
 
@@ -978,7 +1031,13 @@ export default {
       let i = Math.floor(Math.random() * characters.length);
       let c = characters[i];
       this.characters.push(c);
-      console.log(c.name);
+
+      // let's update the text in our popup that we're about to pop up
+      let p = document.getElementById('unlockedCharacterPopupDisplayText');
+      p.innerHTML = "Fuck yeah! You've unlocked the very famous " + c.name + " to be a character in your fic";
+
+      this.displayPopup('character-unlock-popup');
+//      console.log(c.name);
 
     },
 
@@ -986,7 +1045,86 @@ export default {
       let i = Math.floor(Math.random() * plots.length);
       let p = plots[i];
       this.plots.push(p);
+
+      // let's update the text in our popup that we're about to pop up
+      let t = document.getElementById('unlockedPlotPopupDisplayText');
+      t.innerHTML = "Fuck yeah! You've unlocked the very famous " + p.name + " plot to enjoy with your love interest";
+
+      this.displayPopup('plot-unlock-popup');
+
+
       console.log(p.name);
+    },
+
+    generateFic() {
+      // this is where we gen our fic. we're gonna do this dumb the first time and then refactor it
+      // later on.
+      //
+      // what we need to do here:
+      //   1. get our love interest
+      //   2. get our plot
+      //   3. get our text template (hardcode it here for now)
+      //   4. interpolate our vars into the text
+      //   5. display it in a popup
+      //   6. look at boobs
+      //      6a.  ( . Y . )
+      //   7. profit
+
+
+      var char, plot; // these will be the actual objs
+      for (let i = 0; i < this.characters.length; i++) {
+        if (this.characters[i].id === this.selectedCharacter) {
+          char = this.characters[i];
+          console.log(char.name);
+          break;
+        }
+      } 
+
+      for (let i = 0; i < this.plots.length; i++) {
+        if (this.plots[i].id === this.selectedPlot) {
+          plot = this.plots[i];
+          console.log(plot.name);
+          break;
+        }
+      } 
+
+      var fic = `Generate a 5-7 paragraph star wars fan fic detailing a slice of life day between the main character, a heterosexual man,
+                 and his love interest ${char.name} as they navigate ${plot.name}
+
+      `;
+
+      var dispText = document.getElementById("generatedFicPopupDisplayText");
+      dispText.innerHTML = fic;
+
+      this.displayPopup('generated-fic-popup');
+
+
+
+    },
+
+    restartRun() {
+      // this will get complicated eventually, but for now we just reset the character and plot menus
+      // and wipe out the wip xp and inventory, and return to game state 0
+
+      this.characters = [ ];
+      this.plots = [ ];
+
+      for (let i = 0; i < this.inventory.length; i++) {
+        this.inventory[i].count = 0;
+      }
+
+      for (let i = 0; i < this.skills.length; i++) {
+        this.skills[i].wipLevel = 0;
+        this.skills[i].wipXp = 0;
+        this.skills[i].wipXpNeeded = 100;
+        this.skills[i].wipMultiplier = 1;
+        this.skills[i].wipDisplayXp = 0;
+        this.skills[i].wipDisplayXpNeeded = 100;
+        this.skills[i].wipDisplayMultiplier = 1;
+      }
+
+      this.closePopup('generated-fic-popup');
+      this.activateTab(1);
     },
 
     formatDisplayNumber(v) {
@@ -997,6 +1135,12 @@ export default {
         return Math.floor(v * 10) / 10;
       }
       return Math.floor(v);
+
+    },
+ 
+    displayPopup(name) {
+      let popup = document.getElementById(name);
+      popup.style.display = 'block';
 
     },
 
