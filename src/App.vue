@@ -8,6 +8,8 @@
       <button @click="activateTab(5)" :class="{ active: activeTab === 5 }">Prestige</button>
       <button @click="activateTab(6)" :class="{ active: activeTab === 6 }">How to play</button>
       <button @click="activateTab(7)" :class="{ active: activeTab === 7 }">Statistics</button>
+      <button @click="activateTab(8)" :class="{ active: activeTab === 8 }">Options</button>
+
     </div>
 
     <div class="tab-content">
@@ -300,6 +302,27 @@
         </div>
 
       </div>
+
+      <div class="tab-8" style="display: none">
+        <!-- content for tab 6 -->
+        <div class="box left-box">
+
+        </div>
+
+        <div class="box center-box">
+          <h2>Options</h2>
+          <p>This will eventually be where the options are found</p>
+          <button @click="wipeSave">Wipe the save file</button>
+
+
+        </div>
+
+        <div class="box right-box">
+
+        </div>
+
+      </div>
+
 
     </div>
 
@@ -718,6 +741,16 @@ export default {
 
       curJob: {},
       isTicking: false,  // not sure i'm going to use this in the job loop yet
+      curTick: 0,
+      lastSaveTick: 0,
+
+      saveGameKey: 'fanfic-game-save',
+      saveGame: '',
+      saveInterval: 1000, // how many ticks between saves. this is about 33 seconds
+
+      initted: false, // has the game initialized yet
+
+
 
       // how many times per second do we tick
       tickScaleFactor: 30,
@@ -759,11 +792,51 @@ export default {
         },
       },
 
+      
 
 
     }
   },
+
+
+
   methods: {
+    init() {
+      if (this.initted) {
+        return;
+      }
+
+      this.saveGame = localStorage.getItem(this.saveGameKey);
+      console.log("in init with savetext (" + this.saveGame + ")");
+      if (this.saveGame === '') {
+        this.initted = true;
+        return;
+      }
+      var s = JSON.parse(this.saveGame);
+      this.skills = s.savedSkills;
+      this.stats = s.savedStats;
+      this.initted = true;
+    },
+
+    save() {
+      var saveString = "This is the save string";
+      saveString = this.constructSaveString();
+      localStorage.setItem(this.saveGameKey, saveString);
+      console.log("in save() with savestring (" + saveString + ")");
+
+
+
+
+    },
+
+    wipeSave() {
+      var saveString = '';
+      localStorage.setItem(this.saveGameKey, saveString);
+    },
+
+
+
+
     activateTab(tabIndex) {
       // hide the currently active tab
       document.querySelector(`.tab-${this.activeTab}`).style.display = 'none';
@@ -778,6 +851,10 @@ export default {
 
     // this is the main game loop right here
     runJobs() {
+      if (!this.initted) {
+        this.init();
+      }
+
       if (this.jobsRunning) {
         return; // alraedy jobs running, let's not double up on that
       }
@@ -785,6 +862,12 @@ export default {
       // if there aren't jobs in the queue, no point in being here
       if (this.jobqueue.length === 0) {
         return;
+      }
+
+      // if it's been more than a thousand ticks since our last save, let's save
+      if (this.curTick > this.lastSaveTick + 1000) {
+        this.save();
+        this.lastSaveTick = this.curTick;
       }
 
       this.jobsRunning = true;
@@ -802,15 +885,15 @@ export default {
 
       this.curJob = this.jobqueue[0];
       let s = this.getSkillFromJob(this.curJob);
-      if (s.id >= 132234) {
-        this.foo = "bar"; // lol, this is just to shut up an error message
-      }
 
       // check if we can afford the job
       if (!this.canAfford(this.curJob)) {
-        // uh-oh, we can't afford this job. just return
+        // uh-oh, we can't afford this job. take it off the queue and return. we call
+        // runJobs again here because there may be things queued after this one that can
+        // be afforded
         this.jobsRunning = false;
-        return;
+        this.jobqueue.shift();
+        return this.runJobs();
       }
 
       this.jobSpend(this.curJob);
@@ -834,6 +917,9 @@ export default {
       var ptext = document.getElementById("jobQueueItemName1");
 
       const interval = setInterval(() => {
+        this.curTick++;
+
+
         counter += xpPerTick;
         this.addSkillXp(s, xpPerTick);
         var completion = ((counter / this.curJob.cost) * 100).toFixed(0);
@@ -907,25 +993,28 @@ export default {
     canAfford(j) {
       let canWe = true; // be optimistic
 
-      // we loop through all the keys in the
-      // consumes field of the job and make
-      // sure that we have at least that many of
-      // that item in stock. if the answer for any
-      // item is no, then we can't afford it
-      for (let k in Object.keys(j.consumes)) {
-        // refactor all this later. right now i'm just going to do it dumb
-        if (k === 'Page') {
-
-          if (this.inventory[0].count < j.consumes[k]) {
-            canWe = false;
-
-          }
-        }
+      if (j.consumes.Page > this.inventory[0].count) {
+        // not enough pages
+        canWe = false;
+      }
+      if (j.consumes.CharLove > this.inventory[1].count) {
+       // not enough charLove
+       canWe = false;       
+      }
+      if (j.consumes.TropeFragment > this.inventory[2].count) {
+        // not enough tropes
+        canWe = false;
+      }
+      if (j.consumes.CharacterUnlock > this.inventory[3].count) {
+        // not enough charunlocks
+        canWe = false;
+      }
+      if (j.consumes.PlotUnlock > this.inventory[4].count) {
+        // not enough plotunlocks
+        canWe = false;
       }
 
       return canWe;
-
-
     },
 
     jobSpend(j) {
@@ -1106,6 +1195,8 @@ export default {
       // this will get complicated eventually, but for now we just reset the character and plot menus
       // and wipe out the wip xp and inventory, and return to game state 0
 
+      this.save();
+
       this.characters = [ ];
       this.plots = [ ];
 
@@ -1181,6 +1272,16 @@ export default {
       }
 
 
+    },
+
+    constructSaveString() {
+      // we need to save our skills, our stats, and eventually our unlocks
+      var saveData = { 
+                        savedStats: this.stats,
+                        savedSkills: this.skills,
+                     };
+      var s = JSON.stringify(saveData);
+      return s;
     },
 
   },

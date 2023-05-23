@@ -4,6 +4,7 @@ export const characters = [
         name: 'Stormtrooper FJ 3745',
         gender: 'Male',
         tier: 'Common',
+        fandom: 'Star Wars',
     },
 
     {
@@ -11,23 +12,69 @@ export const characters = [
         name: "Jedi Mel'issa",
         gender: 'Female',
         tier: 'Common',
-
+        fandom: 'Star Wars',
     },
+
+    {
+        id: 3,
+        name: "Padawan Lo'ganis",
+        gender: "Male",
+        tier: 'Common',
+        fandom: 'Star Wars',
+    },
+
+    {
+        id: 4,
+        name: "Wedge Antilles",
+        gender: "Male",
+        tier: 'Common',
+        fandom: 'Star Wars',
+    },
+
+    {
+        id: 5,
+        name: "Mon Mothma",
+        gender: "Female",
+        tier: 'Common',
+        fandom: 'Star Wars',
+    },
+
+    {
+        id: 6,
+        name: "Greedo",
+        gender: "Male",
+        tier: 'Common',
+        fandom: 'Star Wars',
+    },
+
+    {
+        id: 7,
+        name: "Biggs Darklighter",
+        gender: "Male",
+        tier: 'Common',
+        fandom: 'Star Wars',
+    },
+
+
+
 
 ];
 
 export const plots = [
     {
         id: 1,
-        name: 'Fetch quest',
+        name: 'Grocery shopping',
+        type: 'Slice of life',
     },
     {
         id: 2,
         name: 'Date night',
+        type: 'Slice of life',
     },
     {
         id: 3,
         name: 'Laundry day',
+        type: 'Slice of life',
     },
 
 ];
