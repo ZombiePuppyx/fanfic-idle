@@ -76,5 +76,16 @@ export const plots = [
         name: 'Laundry day',
         type: 'Slice of life',
     },
+    {
+        id: 4,
+        name: 'Corporate team building event',
+        type: 'Slice of life',
+    },
+    {
+        id: 5,
+        name: 'Play in a rec league field hockey tournament',
+        type: 'Slice of life',
+
+    },
 
 ];
