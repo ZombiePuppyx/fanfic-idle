@@ -312,6 +312,11 @@
             and it is permanent. On your next run you'll start out with a higher canon multiplier, which will let
             you make it farther into the game during the 100,000 ticks you get.
           </p>
+          <p>The two types of experience generate a multiplier. These are called the WIP multiplier and the Canon multiplier,
+            in a burst of profound creative excellence. Multiplying them by each other gives the total multiplier for that
+            skill. That number is roughly the number of points of that skill generated per second to pay for the current job.
+            As the multipliers get bigger, you'll finish jobs faster.
+          </p>
           <p>Keep reading pages and buying character loves and trope fragments.</p>
         </div>
 
@@ -634,7 +639,7 @@ export default {
         {
           storyText: `You can't stop reading. You can't stop imagining. Your mind builds dreamscapes from the stories you read
           and your heart aches for the friends you'll never meet. You find you can fall in love with a fictional character, and so
-          you do`,
+          you do. Maybe things will happen after you've fallen in love with 3 characters.`,
           advanceCriteria: [
             () => { return this.stats.currentRun.pagesRead >= 10; },
           ],
@@ -663,7 +668,7 @@ export default {
         {
           storyText: `You can feel connections being made in your mind and in your soul. These characters and their stories speak
                       to you in a way that nothing has before. You start to see recurring themes. Something deep inside you tells 
-                      you that you need to collect 20 loved characters and 20 extracted tropes. `,
+                      you that you need to collect 3 loved characters and 3 extracted tropes. `,
           advanceCriteria: [
             () => {
               return this.stats.currentRun.tropesExtracted >= 3 && this.stats.currentRun.charactersLoved >= 3;
@@ -698,7 +703,8 @@ export default {
         // we've collected 20 character loves and 20 trope fragments. time to offer the chance to 
         // get a trope or a character
         {
-          storyText: `You can now produce a character unlock and a plot unlock. You can use thoseover on the 'Your fic' tab, 
+          storyText: `You can now produce a character unlock and a plot unlock by performing the relatively expensive
+                      You can use thoseover on the 'Your fic' tab, 
                       or you can stay here and keep collecting character and plot unlocks or pages, loves, and tropes. Once
                       you've unlocked a character and a plot, you'll open up a new opportunity. `,
           advanceCriteria: [
@@ -894,7 +900,7 @@ export default {
           name: 'ReadPage',
           cost: 10,
           skill: 'Reading',
-          produces: { Page: 10 },
+          produces: { Page: 1 },
           consumes: {},
 
         },
@@ -904,7 +910,7 @@ export default {
           name: 'LoveCharacter',
           cost: 20,
           skill: 'Characterization',
-          produces: { CharLove: 10 },
+          produces: { CharLove: 1 },
           consumes: { Page: 5 },
         },
 
@@ -913,14 +919,14 @@ export default {
           name: 'AnalyzeText',
           cost: 30,
           skill: 'Analysis',
-          produces: { TropeFragment: 10 },
+          produces: { TropeFragment: 1 },
           consumes: { Page: 10 },
         },
 
         {
           id: 4,
           name: 'StudyCharacter',
-          cost: 3,
+          cost: 300,
           skill: 'Characterization',
           produces: { CharacterUnlock: 1 },
           consumes: { CharLove: 3 },
@@ -929,7 +935,7 @@ export default {
         {
           id: 5,
           name: 'FindPlot',
-          cost: 3,
+          cost: 300,
           skill: 'Analysis',
           produces: { PlotUnlock: 1 },
           consumes: { TropeFragment: 3 },
@@ -938,7 +944,7 @@ export default {
         {
           id: 6,
           name: 'Writing class (reading)',
-          cost: 3,
+          cost: 1000,
           skill: 'Reading',
           produces: { ClassCredit: 1 },
           consumes: {  },
@@ -947,7 +953,7 @@ export default {
         {
           id: 7,
           name: 'Writing class (character)',
-          cost: 3,
+          cost: 1000,
           skill: 'Characterization',
           produces: { ClassCredit: 1 },
           consumes: {  },
@@ -956,7 +962,7 @@ export default {
         {
           id: 8,
           name: 'Writing class (analysis)',
-          cost: 3,
+          cost: 1000,
           skill: 'Analysis',
           produces: { ClassCredit: 1 },
           consumes: {  },
@@ -1021,13 +1027,13 @@ export default {
       todolist: [ ],
 
       readTimer: 'Cost: 10 reading', // Added timer variable here
-      loveTimer: 'Cost: 20 characterization', // the right way for this to work is for these timers to actually
-      analTimer: 'Cost: 30 analysis', // be the job cost and for that to be carried around in a job object
+      loveTimer: 'Cost: 20 characterization and 5 pages', // the right way for this to work is for these timers to actually
+      analTimer: 'Cost: 30 analysis and 10 pages', // be the job cost and for that to be carried around in a job object
       // we'll do that Real Soon Now
-      job4Timer: 'Cost: 300 characterization',
-      job5Timer: 'Cost: 300 analysis',
+      job4Timer: 'Cost: 300 characterization and 3 character loves',
+      job5Timer: 'Cost: 300 analysis and 3 trope fragments',
       job6Timer: '',
-      job7Timer: 'Cost: 100 reading',
+      job7Timer: 'Cost: 1000 reading and 1000 characterization and 1000 analysis',
 
       // xp growth factor is how much more xp is needed for the next level
       canonXpGrowthFactor: 1.02,
@@ -1242,6 +1248,24 @@ export default {
       const interval = setInterval(() => {
         this.curTick++;
         this.ticksRemaining--;
+
+        if (this.ticksRemaining === 0) {
+          // run's over. we're gonna clear the jobqueue
+          this.jobqueue = [ ];
+          this.jobsRunning = false;
+          // clear the interval
+          clearInterval(interval);
+
+          // reset the job progress bar
+          pbar.classList.add('instant');
+          pbar.style.width = "0%";
+          pbar.classList.remove('instant');
+          ptext.innerHTML = "";
+
+          return this.restartRun();
+          
+
+        }
 
 
         counter += xpPerTick;
@@ -1563,6 +1587,9 @@ export default {
       this.stats.lastRun = this.stats.currentRun;
       this.stats.currentRun = ts;
 
+      // make sure the job queue is empty
+      this.jobqueue = [ ];
+
       // reset the ticks remaining
       this.ticksRemaining = 100000;  
 
@@ -1581,8 +1608,10 @@ export default {
       this.curGameStateIdx = 0;
       this.gameStates[this.curGameStateIdx].enterState[0]();
 
-
+      // we either restart because a fic was generated or because we ran out of ticks
+      // let's just close both of those popups here
       this.closePopup('generated-fic-popup');
+
       this.activateTab(1);
     },
 
