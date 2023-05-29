@@ -79,8 +79,8 @@
           </div>
 
           <div class="button-container" id="job-button-7-container" style="display: none">
-            <button @click="handleJobButton(7)">Job 7</button>
-            <div class="timer">{{ job6Timer }}</div>
+            <button @click="handleJobButton(7)">Read series</button>
+            <div class="timer">{{ job7Timer }}</div>
           </div>
 
           <div class="button-container" id="job-button-8-container" style="display: none">
@@ -383,7 +383,7 @@
 
     <!-- POPUPS -->
 
-    <div class="popup-box" id="main-popup">
+    <div class="popup-box" id="main-popup" style="display: none">
       <button class="close-button" @click="closePopup('main-popup')"></button>
       <!-- Content for the popup -->
       <div class="popup-content">
@@ -398,7 +398,7 @@
 
 
     <div class="popup-box" id="start-game-popup" style="display: flex">
-      <button class="close-button" @click="closePopup('start-game-popup')"></button>
+      <button class="close-button" @click="startGame"></button>
       <!-- Content for the popup -->
       <div class="popup-content">
         <h2>Welcome to Fanfic Idle</h2>
@@ -459,6 +459,21 @@
       <!--      <button class="close-button bottom" @click="closePopup"></button> -->
     </div>
 
+    <div class="popup-box" id="start-chapter-2-popup" style="display: none">
+      <button class="close-button" @click="closePopup('start-chapter-2-popup')"></button>
+      <!-- Content for the popup -->
+      <div class="popup-content">
+        <h2>Holy shit, Chapter 2!</h2>
+        <div>
+          <p id="chapter2StartPopupDisplayText">This is the text area of the popup.</p>
+        </div>
+        <hr class="section-divider" />
+        <div class="button-container">
+          <button @click="closePopup('start-chapter-2-popup')">Non-obvious placeholder text</button>
+        </div>
+      </div>
+      <!--      <button class="close-button bottom" @click="closePopup"></button> -->
+    </div>
 
 
 
@@ -689,7 +704,7 @@ export default {
                       You need to learn, you need to grow. Maybe you could take a class? `,
           advanceCriteria: [
             () => {
-              return false;
+              return this.inventory[5].count >= 3;
             },
           ],
           advanceState: [
@@ -711,6 +726,47 @@ export default {
 
         },
 
+        ////////////////////////////////////////////////////////////////
+        // GAMESTATE 5: 
+        // this is the start of chapter 2
+ 
+        {
+          storyText: `Formal training? Now that was a good damn idea. Too bad you gained more confidence than knowledge. `,
+          advanceCriteria: [
+            () => {
+              return false;
+            },
+          ],
+          advanceState: [
+            () => {
+
+
+            }
+          ],
+
+          enterState: [
+            () => {
+              // handle entering this state here
+              this.storyText = this.gameStates[this.curGameStateIdx].storyText;
+
+              // we're gonna turn off the chapter one job buttons and turn
+              // on the first chapter 2 button
+              for (let i = 1; i < 7; i++) {
+                let b = document.getElementById("job-button-" + i + "-container");
+                b.style.display = 'none';
+              }
+
+              let bc = document.getElementById("job-button-7-container");
+              bc.style.display = '';
+
+              // and finish with the welcome to chapter 2 popup
+              this.displayPopup('start-chapter-2-popup');
+
+
+            },
+          ],
+
+        },
 
 
 
@@ -805,7 +861,7 @@ export default {
           name: 'ReadPage',
           cost: 10,
           skill: 'Reading',
-          produces: { Page: 1 },
+          produces: { Page: 10 },
           consumes: {},
 
         },
@@ -815,7 +871,7 @@ export default {
           name: 'LoveCharacter',
           cost: 20,
           skill: 'Characterization',
-          produces: { CharLove: 1 },
+          produces: { CharLove: 10 },
           consumes: { Page: 5 },
         },
 
@@ -824,14 +880,14 @@ export default {
           name: 'AnalyzeText',
           cost: 30,
           skill: 'Analysis',
-          produces: { TropeFragment: 1 },
+          produces: { TropeFragment: 10 },
           consumes: { Page: 10 },
         },
 
         {
           id: 4,
           name: 'StudyCharacter',
-          cost: 300,
+          cost: 3,
           skill: 'Characterization',
           produces: { CharacterUnlock: 1 },
           consumes: { CharLove: 3 },
@@ -840,11 +896,40 @@ export default {
         {
           id: 5,
           name: 'FindPlot',
-          cost: 300,
+          cost: 3,
           skill: 'Analysis',
           produces: { PlotUnlock: 1 },
           consumes: { TropeFragment: 3 },
         },
+
+        {
+          id: 6,
+          name: 'Writing class (reading)',
+          cost: 3,
+          skill: 'Reading',
+          produces: { ClassCredit: 1 },
+          consumes: {  },
+        },
+
+        {
+          id: 7,
+          name: 'Writing class (character)',
+          cost: 3,
+          skill: 'Characterization',
+          produces: { ClassCredit: 1 },
+          consumes: {  },
+        },
+
+        {
+          id: 8,
+          name: 'Writing class (analysis)',
+          cost: 3,
+          skill: 'Analysis',
+          produces: { ClassCredit: 1 },
+          consumes: {  },
+        },
+
+
 
 
       ],
@@ -875,6 +960,12 @@ export default {
           name: 'PlotUnlock',
         },
 
+        {
+          id: 6,
+          name: 'ClassCredit',
+        },
+
+
 
       ],
 
@@ -884,6 +975,7 @@ export default {
         { id: 3, name: "Trope fragments", count: 0 },
         { id: 4, name: "Character unlocks", count: 0 },
         { id: 5, name: "Plot unlocks", count: 0 },
+        { id: 6, name: "Class credits", count: 0 },
 
       ],
 
@@ -898,7 +990,8 @@ export default {
       // we'll do that Real Soon Now
       job4Timer: 'Cost: 300 characterization',
       job5Timer: 'Cost: 300 analysis',
-      job6Timer: '0/60',
+      job6Timer: '',
+      job7Timer: 'Cost: 100 reading',
 
       // xp growth factor is how much more xp is needed for the next level
       canonXpGrowthFactor: 1.02,
@@ -947,6 +1040,7 @@ export default {
           tropesExtracted: 0,
           charactersUnlocked: 0,
           plotsUnlocked: 0,
+          classCredits: 0,
           ficsGenerated: 0,
 
         },
@@ -957,6 +1051,7 @@ export default {
           tropesExtracted: 0,
           charactersUnlocked: 0,
           plotsUnlocked: 0,
+          classCredits: 0,
           ficsGenerated: 0,
 
         },
@@ -967,6 +1062,7 @@ export default {
           tropesExtracted: 0,
           charactersUnlocked: 0,
           plotsUnlocked: 0,
+          classCredits: 0,
           ficsGenerated: 0,
 
         },
@@ -1255,6 +1351,11 @@ export default {
         this.stats.alltime.plotsUnlocked += j.produces.PlotUnlock;
       }
 
+      if (j.produces.ClassCredit > 0) {
+        this.inventory[5].count += j.produces.ClassCredit;
+        this.stats.currentRun.classCredits += j.produces.ClassCredit;
+        this.stats.alltime.classCredits += j.produces.ClassCredit;
+      }
 
     },
 
@@ -1288,6 +1389,13 @@ export default {
       // 5 is find plot
       else if (num === 5) {
         this.queueJob(this.jobs[4]);
+      }
+      // 6 is writing class and is the first complex job
+      else if (num === 6) {
+        this.queueJob(this.jobs[5]);
+        this.queueJob(this.jobs[6]);
+        this.queueJob(this.jobs[7]);
+
       }
       else {
         console.log("unknown job (" + num + ")");
@@ -1419,6 +1527,17 @@ export default {
       // reset the ticks remaining
       this.ticksRemaining = 100000;  
 
+      // reset the UI
+      for (let i = 0; i < this.UIElementsBaseVis.length; i++) {
+        let e = document.getElementById(this.UIElementsBaseVis[i].name);
+        if (this.UIElementsBaseVis[i].enabled === true) {
+          e.style.display = '';
+        }
+        else {
+          e.style.display = 'none';
+        }
+      }
+
 
       this.curGameStateIdx = 0;
       this.gameStates[this.curGameStateIdx].enterState[0]();
@@ -1518,6 +1637,7 @@ export default {
             tropesExtracted: 0,
             charactersUnlocked: 0,
             plotsUnlocked: 0,
+            classCredits: 0,
             ficsGenerated: 0,
           };
     },
