@@ -293,7 +293,39 @@
 
         <div class="box center-box">
           <h2>How to play</h2>
+          <p>The mechanics are pretty straightforward. You complete jobs to earn resources that are
+            required to complete more jobs. You start by reading pages, and as your love for stories grows you
+            begin to fall in love with characters. You start to analyze the way the stories you read are constructed.
+          </p>
+          <p>Once you've loved a certain number of characters and discovered a certain number of tropes you will unlock
+            the ability to do much more intensive study of each. The tokens you receive for these jobs can be used to buy
+            characters and plot elements for your current run.
+          </p>
+          <p>You only have 100,000 ticks per run. When you run out of ticks, you restart the run from the start, but
+            the next run starts with everything starting out from a faster place, due to how the experience mechanic
+            works.
+          </p>
+          <p>Which brings us to the experience mechanic. You'll note that each job has a cost next to it expressed 
+            as a number and the name of that skill. Each skill, such as Reading, has two experience bars, corresponding
+            to two different types of experience. One type is called WIP experience, or Work In Progress, and this type 
+            of experience resets to 0 each time you restart the run. The other type of experience is called canon experience,
+            and it is permanent. On your next run you'll start out with a higher canon multiplier, which will let
+            you make it farther into the game during the 100,000 ticks you get.
+          </p>
           <p>Keep reading pages and buying character loves and trope fragments.</p>
+        </div>
+
+        <div class="box third-box">
+          <h2>THE QUEUE SHALL LIVE HERE, FEAR ME AND TREMBLE</h2>
+          <h3>the queue is the todo list</h3>
+          <hr class="section-divider" />
+
+          <ul class="todo-list">
+            <li v-for="item in todolist" :key="item.id">
+              {{ item.text }}
+            </li>
+          </ul>
+
         </div>
 
         <div class="box right-box">
@@ -482,6 +514,7 @@
 
 <script>
 import { characters, plots } from './ficdata.js';
+import { todoItems } from './todolist.js';
 // import plots from './ficdata.js';
 
 
@@ -984,6 +1017,9 @@ export default {
         //  this.dummyjob,
 
       ],
+
+      todolist: [ ],
+
       readTimer: 'Cost: 10 reading', // Added timer variable here
       loveTimer: 'Cost: 20 characterization', // the right way for this to work is for these timers to actually
       analTimer: 'Cost: 30 analysis', // be the job cost and for that to be carried around in a job object
@@ -1096,7 +1132,10 @@ export default {
         this.stats = s.savedStats;
       }
 
-      // 
+      // let's populate the todolist data structure for display
+      for (let i = 0; i < todoItems.length; i++) {
+        this.todolist.push({ id: i, text: todoItems[i] });
+      }
 
       this.initted = true;
 
