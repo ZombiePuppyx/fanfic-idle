@@ -452,6 +452,26 @@
     </div>
 
 
+    <div class="popup-box" id="game-over-popup" style="display: none">
+      <button class="close-button" @click="restartRun"></button>
+      <!-- Content for the popup -->
+      <div class="popup-content">
+        <h2>After all that work, time for rebirt</h2>
+        <div>
+          <p id="gameOverPopupDisplayText">You'll make it farther</p>
+        </div>
+        <hr class="section-divider" />
+        <div class="button-container">
+          <button @click="restartRun">Restart run</button>
+        </div>
+      </div>
+      <!--      <button class="close-button bottom" @click="closePopup"></button> -->
+    </div>
+
+
+
+
+
 
 
     <div class="popup-box" id="character-unlock-popup" style="display: none">
@@ -529,6 +549,11 @@ export default {
       activeTab: 1,
 
       storyText: "You need to create, but first you must find inspiration. Read something. Read a lot of things. Read 5 things.",
+
+
+      // use dev weights for jobs and leveling
+      devJobCost: false,
+      // devJobCost: true,
 
       // the stuff we imported
       characters: [],
@@ -739,8 +764,12 @@ export default {
         // a class 
 
         {
-          storyText: `You continue to read, love, and analyze. You unlock characters and plots, but eventually you want more.
-                      You need to learn, you need to grow. Maybe you could take a class? `,
+          storyText: `Congratulations, you've reached an important milestone. You've gained a character unlock and a plot unlock.
+                      You can go over to the 'Your fic' tab and ues those unlocks now. Once you've unlocked a character and a plot,
+                      you will have the option of generating your first fan fic. Doing this will give you a substantial amount of
+                      xp in all 3 skills and will then restart your run. On the other hand, you can choose to take a writing class.
+                      You will not be able to complete that on your first try, but the experience you earn in the process will ensure
+                      that you make it farther next time.`,
           advanceCriteria: [
             () => {
               return this.inventory[5].count >= 3;
@@ -1032,8 +1061,8 @@ export default {
       // we'll do that Real Soon Now
       job4Timer: 'Cost: 300 characterization and 3 character loves',
       job5Timer: 'Cost: 300 analysis and 3 trope fragments',
-      job6Timer: '',
-      job7Timer: 'Cost: 1000 reading and 1000 characterization and 1000 analysis',
+      job6Timer: 'Cost: 1000 reading and 1000 characterization and 1000 analysis',
+      job7Timer: 'NOT YET IMPLEMENTED. COST TBD. USE GEN FIC TO RESTART IF YOU GET HERE',
 
       // xp growth factor is how much more xp is needed for the next level
       canonXpGrowthFactor: 1.02,
@@ -1128,7 +1157,7 @@ export default {
 
       // first we'll load our save
       this.saveGame = localStorage.getItem(this.saveGameKey);
-      console.log("in init with savetext (" + this.saveGame + ")");
+      // console.log("in init with savetext (" + this.saveGame + ")");
       if (this.saveGame === '') {
         // no save
       }
@@ -1143,6 +1172,12 @@ export default {
         this.todolist.push({ id: i, text: todoItems[i] });
       }
 
+      // do we need to set the development values (meaning: really cheap) for
+      // costs of all jobs
+      if (this.devJobCost === true) {
+        this.setDevJobCosts();
+      }
+
       this.initted = true;
 
     },
@@ -1151,7 +1186,7 @@ export default {
       var saveString = "This is the save string";
       saveString = this.constructSaveString();
       localStorage.setItem(this.saveGameKey, saveString);
-      console.log("in save() with savestring (" + saveString + ")");
+      // console.log("in save() with savestring (" + saveString + ")");
 
 
 
@@ -1161,6 +1196,25 @@ export default {
     wipeSave() {
       var saveString = '';
       localStorage.setItem(this.saveGameKey, saveString);
+    },
+
+    setDevJobCosts() {
+      // just directly set the costs instead of looping because
+      // at some point i may want to vary them maybe
+      this.jobs[0].cost = 5;
+      this.jobs[1].cost = 5;
+      this.jobs[2].cost = 5;
+      this.jobs[3].cost = 5;
+      this.jobs[4].cost = 5;
+      this.jobs[5].cost = 5;
+      this.jobs[6].cost = 5;
+      this.jobs[7].cost = 5;
+
+      // lets also bump up production
+      this.jobs[0].produces.Page = 10;
+      this.jobs[1].produces.CharLove = 10;
+      this.jobs[2].produces.TropeFragment = 10;
+
     },
 
 
@@ -1262,9 +1316,9 @@ export default {
           pbar.classList.remove('instant');
           ptext.innerHTML = "";
 
-          return this.restartRun();
-          
-
+          // display the game over popup
+          this.displayPopup('game-over-popup');
+          return;
         }
 
 
@@ -1507,7 +1561,7 @@ export default {
       this.displayPopup('plot-unlock-popup');
 
 
-      console.log(p.name);
+      // console.log(p.name);
     },
 
     generateFic() {
@@ -1529,7 +1583,7 @@ export default {
       for (let i = 0; i < this.characters.length; i++) {
         if (this.characters[i].id === this.selectedCharacter) {
           char = this.characters[i];
-          console.log(char.name);
+          // console.log(char.name);
           break;
         }
       }
@@ -1537,7 +1591,7 @@ export default {
       for (let i = 0; i < this.plots.length; i++) {
         if (this.plots[i].id === this.selectedPlot) {
           plot = this.plots[i];
-          console.log(plot.name);
+          // console.log(plot.name);
           break;
         }
       }
@@ -1560,8 +1614,6 @@ export default {
       // this will get complicated eventually, but for now we just reset the character and plot menus
       // and wipe out the wip xp and inventory, and return to game state 0
 
-      this.save();
-
       // clear the chars and plots lists
       this.characters = [];
       this.plots = [];
@@ -1580,6 +1632,7 @@ export default {
         this.skills[i].wipDisplayXp = 0;
         this.skills[i].wipDisplayXpNeeded = 100;
         this.skills[i].wipDisplayMultiplier = 1;
+        this.skills[i].multiplier = this.skills[i].canonMultiplier;
       }
 
       // move the curRun stats to become the lastRun stats
@@ -1608,8 +1661,11 @@ export default {
       this.curGameStateIdx = 0;
       this.gameStates[this.curGameStateIdx].enterState[0]();
 
+      this.save();
+
       // we either restart because a fic was generated or because we ran out of ticks
       // let's just close both of those popups here
+      this.closePopup('game-over-popup');
       this.closePopup('generated-fic-popup');
 
       this.activateTab(1);

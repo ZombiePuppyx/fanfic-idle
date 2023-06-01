@@ -1,6 +1,11 @@
 export const todoItems = [
+  "add meet cute encounters",
   "add a tutorial",
   "add explanatory text to the your fic tab",
+  "you're a character, collect a name, gender, and orientation setting for the start",
+  "error popups. floating and auto-disappearing, not modal",
+  "non-modal character and plot unlock in chapter 1",
+  "make character and plot unlocks actually cost something",
   "chapter 2 plots and additional your fic controls",
   "chapter 2 story",
   "chapter 2 jobs",
@@ -11,6 +16,9 @@ export const todoItems = [
   "(preferably before adding any more skills)",
   "figure out tooltips",
   "collect more stats",
-  "make queued jobs able to be removed from queue"
+  "make queued jobs able to be removed from queue",
+  "add a version string to the save",
+  "automatically wipe corrupt saves or saves from too many versions ago",
+  "improve the handling of the job queue UI elements"
 
 ];
