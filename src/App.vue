@@ -3,13 +3,15 @@
     <div class="tab-buttons">
       <button @click="activateTab(1)" :class="{ active: activeTab === 1 }">Runtime</button>
       <button @click="activateTab(2)" :class="{ active: activeTab === 2 }">Your fic</button>
+      <!--
       <button @click="activateTab(3)" :class="{ active: activeTab === 3 }">Automation</button>
       <button @click="activateTab(4)" :class="{ active: activeTab === 4 }">Upgrades</button>
       <button @click="activateTab(5)" :class="{ active: activeTab === 5 }">Prestige</button>
+-->
       <button @click="activateTab(6)" :class="{ active: activeTab === 6 }">How to play</button>
       <button @click="activateTab(7)" :class="{ active: activeTab === 7 }">Statistics</button>
       <button @click="activateTab(8)" :class="{ active: activeTab === 8 }">Options</button>
-      <button class="tickBox">{{ticksRemaining}}</button>
+      <button class="tickBox">{{ ticksRemaining }}</button>
 
     </div>
 
@@ -21,76 +23,91 @@
           <div class="skill-widget" v-for="skill in skills" :key="skill.id">
             <h2>{{ skill.name }} : {{ skill.displayMultiplier }}x normal</h2>
             <table>
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Level</th>
-                  <th>XP</th>
-                  <th>XP needed</th>
-                  <th>Multiplier</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>WIP XP</td>
-                  <td>{{ skill.wipLevel }}</td>
-                  <td>{{ skill.wipDisplayXp }}</td>
-                  <td>{{ skill.wipDisplayXpNeeded }}</td>
-                  <td>{{ skill.wipDisplayMultiplier }}</td>
-                </tr>
-                <tr>
-                  <td>Canon XP</td>
-                  <td>{{ skill.canonLevel }}</td>
-                  <td>{{ skill.canonDisplayXp }}</td>
-                  <td>{{ skill.canonDisplayXpNeeded }}</td>
-                  <td>{{ skill.canonDisplayMultiplier }}</td>
-                </tr>
-              </tbody>
+              <tr>
+                <td colspan="5">
+                  <div class="progress-container" style="height: 1px; padding: 0">
+                    <div class="progress-bar tooltip" width="100%" style="height: 10px">
+                      <div class="progress-fill" :id="'skillWipProgressFill-' + skill.id" style="height: 10px"></div>
+                      <span class="tooltipText">
+                        <p>Work in Progress experience (resets each run)</p>
+                        <p>Lvl: {{ skill.wipLevel }} </p>
+                        <p>XP: {{ skill.wipDisplayXp }}/{{ skill.wipDisplayXpNeeded }} </p>
+                        <p>Multiplier: {{ skill.wipDisplayMultiplier }} </p>
+                      </span>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td colspan="5">
+                  <div class="progress-container" style="height: 1px; padding: 0">
+                    <div class="canonXpBar tooltip" width="100%" style="height: 10px">
+                      <div class="progress-fill-yellow" :id="'skillCanonProgressFill-' + skill.id" style="height: 10px">
+                      </div>
+                      <span class="tooltipText">
+                        <p>Canon experience (doesn't reset between runs)</p>
+                        <p>Lvl: {{ skill.canonLevel }} </p>
+                        <p>XP: {{ skill.canonDisplayXp }}/{{ skill.canonDisplayXpNeeded }} </p>
+                        <p>Multiplier: {{ skill.canonDisplayMultiplier }} </p>
+                      </span>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <!-- </tbody> -->
             </table>
           </div>
         </div>
         <div class="box center-box">
           <h2>fanfic-idle</h2>
           <p>{{ storyText }}</p>
-          <div class="button-container" id="job-button-1-container">
-            <button @click="handleJobButton(1)">Read page</button>
-            <div class="timer">{{ readTimer }}</div>
+          <div class="button-container tooltip" id="job-button-1-container">
+            <span class="tooltipText">{{ readTimer }}</span>
+            <button @click="handleJobButton(1)">Read page</button>            
           </div>
-          <div class="button-container" id="job-button-2-container" style="display: none">
+          <div class="button-container tooltip" id="job-button-2-container" style="display: none">
             <button @click="handleJobButton(2)">Love character</button>
-            <div class="timer">{{ loveTimer }}</div>
+            <span class="tooltipText">{{ loveTimer }}</span>
           </div>
-          <div class="button-container" id="job-button-3-container" style="display: none">
+          <div class="button-container tooltip" id="job-button-3-container" style="display: none">
             <button @click="handleJobButton(3)">Analyze Text</button>
-            <div class="timer">{{ analTimer }}</div>
+            <span class="tooltipText">{{ analTimer }}</span>
           </div>
 
-          <div class="button-container" id="job-button-4-container" style="display: none">
+          <div class="button-container tooltip" id="job-button-4-container" style="display: none">
             <button @click="handleJobButton(4)">Study Character</button>
-            <div class="timer">{{ job4Timer }}</div>
+            <span class="tooltipText">{{ job4Timer }}</span>
           </div>
-          <div class="button-container" id="job-button-5-container" style="display: none">
+          <div class="button-container tooltip" id="job-button-5-container" style="display: none">
             <button @click="handleJobButton(5)">Discover Plot</button>
-            <div class="timer">{{ job5Timer }}</div>
+            <span class="tooltipText">{{ job5Timer }}</span>
           </div>
-          <div class="button-container" id="job-button-6-container" style="display: none">
+          <div class="button-container tooltip" id="job-button-6-container" style="display: none">
             <button @click="handleJobButton(6)">Writing class</button>
-            <div class="timer">{{ job6Timer }}</div>
+            <span class="tooltipText">
+              <p>
+                This job is very expensive. You will not be able to finish it on your first run.
+              </p>
+              <p>
+                {{ job6Timer }}
+              </p>
+            </span>
           </div>
 
-          <div class="button-container" id="job-button-7-container" style="display: none">
+          <div class="button-container tooltip" id="job-button-7-container" style="display: none">
             <button @click="handleJobButton(7)">Read series</button>
-            <div class="timer">{{ job7Timer }}</div>
+            <span class="tooltipText">{{ job7Timer }}</span>
           </div>
 
-          <div class="button-container" id="job-button-8-container" style="display: none">
+          <div class="button-container tooltip" id="job-button-8-container" style="display: none">
             <button @click="handleJobButton(8)">Job 8</button>
-            <div class="timer">{{ job6Timer }}</div>
+            <span class="tooltipText">{{ job6Timer }}</span>
           </div>
 
-          <div class="button-container" id="job-button-9-container" style="display: none">
+          <div class="button-container tooltip" id="job-button-9-container" style="display: none">
             <button @click="handleJobButton(9)">Job 9</button>
-            <div class="timer">{{ job6Timer }}</div>
+            <span class="tooltipText">{{ job6Timer }}</span>
           </div>
 
 
@@ -98,9 +115,10 @@
         </div>
 
         <div class="box third-box">
-          <p>THE QUEUE SHALL LIVE HERE, FEAR ME AND TREMBLE</p>
+          <p>JOB QUEUE</p>
           <div class="go-box">
-            <button @click="runJobs">Go!</button>
+            <button class="go-button" @click="runJobs">Go!</button>
+            <button class="pause-button" @click="pauseJobs">Pause</button>
           </div>
           <div class="progress-container">
             <div class="progress-bar" id="jobQueueItem1" width="100%">
@@ -114,15 +132,10 @@
           <hr class="section-divider" />
 
           <ul class="job-queue">
-            <li v-for="item in jobqueue" :key="item.id">
-              <!--  <div class="progress-bar">
-                <div class="progress-fill progressFill"></div>
-                <div class="progress-text">{{ item.name }}</div>
-              </div> -->
+            <li v-for="(item, index) in jobqueue" :key="item.id" @click="handleJobQueueClick(index)">
               {{ item.name }}
-
             </li>
-          </ul>
+          </ul> 
 
         </div>
 
@@ -167,32 +180,54 @@
 
         <div class="box center-box">
           <h2>Your fic</h2>
-          <p>You will eventually unlock more complex story structures, with multiple POVs, love triangles, non-linear
-            narratives, a wider array of bad guys, and myriad other complexifications. For now, though, you can only
-            write a slice of life with a love interest. So go do that.
+          <p>If you've followed directions, you've already gotten yourself a character unlock and plot unlock over there
+            on
+            the runtime tab. If you haven't, that's ok, you can still read about what's gonna happen here, but you can't
+            do it yet.
+          </p>
+          <p>How this works is that you spend character unlock tokens and plot unlock tokens. The character and plot you
+            draw are
+            random. You can draw more than one per run. You can also draw the same character or plot more than once per
+            run.
+            Once you're happy with the character and plot you have you can generate your fic. Right now you're super
+            limiited.
+            This first fic is a meet cute between a protagonist of random gender and orientation and their love interest.
+            You've
+            got limited choices of venues for the meet cute to happen.
+          </p>
+          <p>You'll be given a large amount of experience for completing your fic and your run will restart. Your WIP
+            experience
+            and levels will be reset to 0, but your Canon experience and levels will remain. You'll start the next run
+            able to do
+            everything faster than you could the first time. How much experience you get for this fic will depend on how
+            rare the
+            character and plot are. Rarer characters and plots will give you more experience.
           </p>
 
-          <div>
-            <label for="selectCharacter">Select a love interest:</label>
-            <select id="selectCharacter" v-model="selectedCharacter">
-              <option v-for="option in characters" :value="option.id" :key="option.id">{{ option.name }}</option>
-            </select>
-          </div>
+          <div class="fic-generator-container" id="chapter-1-generator">
+            <div>
+              <label for="selectCharacter">Select a love interest:</label>
+              <select id="selectCharacter" v-model="selectedCharacter">
+                <option v-for="option in characters" :value="option.id" :key="option.id">{{ option.name }}</option>
+              </select>
+            </div>
 
-          <hr class="section-divider" />
+            <hr class="section-divider" />
 
-          <div>
-            <label for="selectPlot">Select a plot:</label>
-            <select id="selectPlot" v-model="selectedPlot">
-              <option v-for="option in plots" :value="option.id" :key="option.id">{{ option.name }}</option>
-            </select>
+            <div>
+              <label for="selectPlot">Select a plot:</label>
+              <select id="selectPlot" v-model="selectedPlot">
+                <option v-for="option in plots" :value="option.id" :key="option.id">{{ option.name }}</option>
+              </select>
+            </div>
           </div>
 
           <hr class="section-divider" />
 
           <div>
             <!--            <button @click="generateFic">Generate fic</button> -->
-            <button @click="generateFic">Generate fic (this will wipe your WIP xp and inventory and restart you at the beginning)</button>
+            <button @click="generateFic">Generate fic (this will wipe your WIP xp and inventory and restart you at the
+              beginning)</button>
 
           </div>
 
@@ -305,24 +340,26 @@
             the next run starts with everything starting out from a faster place, due to how the experience mechanic
             works.
           </p>
-          <p>Which brings us to the experience mechanic. You'll note that each job has a cost next to it expressed 
+          <p>Which brings us to the experience mechanic. You'll note that each job has a cost next to it expressed
             as a number and the name of that skill. Each skill, such as Reading, has two experience bars, corresponding
-            to two different types of experience. One type is called WIP experience, or Work In Progress, and this type 
-            of experience resets to 0 each time you restart the run. The other type of experience is called canon experience,
+            to two different types of experience. One type is called WIP experience, or Work In Progress, and this type
+            of experience resets to 0 each time you restart the run. The other type of experience is called canon
+            experience,
             and it is permanent. On your next run you'll start out with a higher canon multiplier, which will let
             you make it farther into the game during the 100,000 ticks you get.
           </p>
-          <p>The two types of experience generate a multiplier. These are called the WIP multiplier and the Canon multiplier,
+          <p>The two types of experience generate a multiplier. These are called the WIP multiplier and the Canon
+            multiplier,
             in a burst of profound creative excellence. Multiplying them by each other gives the total multiplier for that
-            skill. That number is roughly the number of points of that skill generated per second to pay for the current job.
+            skill. That number is roughly the number of points of that skill generated per second to pay for the current
+            job.
             As the multipliers get bigger, you'll finish jobs faster.
           </p>
           <p>Keep reading pages and buying character loves and trope fragments.</p>
         </div>
 
         <div class="box third-box">
-          <h2>THE QUEUE SHALL LIVE HERE, FEAR ME AND TREMBLE</h2>
-          <h3>the queue is the todo list</h3>
+          <h2>THE TO-DO LIST</h2>
           <hr class="section-divider" />
 
           <ul class="todo-list">
@@ -330,6 +367,16 @@
               {{ item.text }}
             </li>
           </ul>
+
+          <hr class="section-divider" />
+          <h2>THE TO-DONE LIST</h2>
+
+          <ul class="todo-list">
+            <li v-for="item in toDone" :key="item.id">
+              {{ item.text + " (" + item.date + ")" }}
+            </li>
+          </ul>
+
 
         </div>
 
@@ -382,9 +429,9 @@
             <div class="grid-cell">{{ stats.alltime.plotsUnlocked }}</div>
 
             <div class="grid-cell">Fics generated</div>
-            <div class="grid-cell">{{ 132 }}</div>
-            <div class="grid-cell">{{ 987 }}</div>
-            <div class="grid-cell">{{ 12353 }}</div>
+            <div class="grid-cell">{{ stats.currentRun.ficsGenerated }}</div>
+            <div class="grid-cell">{{ stats.lastRun.ficsGenerated }}</div>
+            <div class="grid-cell">{{ stats.alltime.ficsGenerated }}</div>
           </div>
         </div>
 
@@ -539,7 +586,7 @@
 
 <script>
 import { characters, plots } from './ficdata.js';
-import { todoItems } from './todolist.js';
+import { todoItems, toDoneList } from './todolist.js';
 // import plots from './ficdata.js';
 
 
@@ -553,7 +600,7 @@ export default {
 
       // use dev weights for jobs and leveling
       devJobCost: false,
-      // devJobCost: true,
+      //devJobCost: true,
 
       // the stuff we imported
       characters: [],
@@ -570,7 +617,7 @@ export default {
       // as i add additional UI elements and game states, i'll just make sure i keep this list up to date
 
       UIElementsBaseVis: [
-        { 
+        {
           name: 'job-button-1-container',
           enabled: true,
         },
@@ -644,15 +691,9 @@ export default {
               // handle entering this state here
               // set the story text
               this.storyText = this.gameStates[this.curGameStateIdx].storyText;
-
-              // coming into gamestate 0 means either we just loaded the app *or*
-              // we are restarting. either way, let's run through and make sure the
-              // right buttons are on and that all the other buttons are off
-
-              // let b1 = 
-
-
-
+              // make sure job 1 is set to visible
+              let bc = document.getElementById("job-button-1-container");
+              bc.style.display = "block";
             },
           ],
         },
@@ -797,7 +838,7 @@ export default {
         ////////////////////////////////////////////////////////////////
         // GAMESTATE 5: 
         // this is the start of chapter 2
- 
+
         {
           storyText: `Formal training? Now that was a good damn idea. Too bad you gained more confidence than knowledge. `,
           advanceCriteria: [
@@ -854,6 +895,7 @@ export default {
           wipDisplayXp: 0,
           wipDisplayXpNeeded: 100,
           wipDisplayMultiplier: 1,
+          wipXpDisplayPercentage: 0,
 
           canonLevel: 0,
           canonXp: 0,
@@ -976,7 +1018,7 @@ export default {
           cost: 1000,
           skill: 'Reading',
           produces: { ClassCredit: 1 },
-          consumes: {  },
+          consumes: {},
         },
 
         {
@@ -985,7 +1027,7 @@ export default {
           cost: 1000,
           skill: 'Characterization',
           produces: { ClassCredit: 1 },
-          consumes: {  },
+          consumes: {},
         },
 
         {
@@ -994,7 +1036,7 @@ export default {
           cost: 1000,
           skill: 'Analysis',
           produces: { ClassCredit: 1 },
-          consumes: {  },
+          consumes: {},
         },
 
 
@@ -1053,7 +1095,8 @@ export default {
 
       ],
 
-      todolist: [ ],
+      todolist: [],
+      toDone: [],
 
       readTimer: 'Cost: 10 reading', // Added timer variable here
       loveTimer: 'Cost: 20 characterization and 5 pages', // the right way for this to work is for these timers to actually
@@ -1077,6 +1120,7 @@ export default {
       // arrayPushTest: true,
 
       jobsRunning: false,
+      paused: false,
       jobQueueEmpty: true,
 
       curJob: {},
@@ -1167,9 +1211,13 @@ export default {
         this.stats = s.savedStats;
       }
 
-      // let's populate the todolist data structure for display
+      // let's populate the todolist and todone data structure for display
       for (let i = 0; i < todoItems.length; i++) {
         this.todolist.push({ id: i, text: todoItems[i] });
+      }
+
+      for (let i = 0; i < toDoneList.length; i++) {
+        this.toDone.push({ id: i, text: toDoneList[i].item, date: toDoneList[i].date});
       }
 
       // do we need to set the development values (meaning: really cheap) for
@@ -1232,6 +1280,11 @@ export default {
     },
 
 
+    // flip the pause status
+    pauseJobs() {
+      this.paused = !this.paused;
+    },
+    
     // this is the main game loop right here
     runJobs() {
       if (!this.initted) {
@@ -1239,7 +1292,13 @@ export default {
       }
 
       if (this.jobsRunning) {
-        return; // alraedy jobs running, let's not double up on that
+        // already jobs running, let's not double up on that, but
+        // we might be paused, if so let's unpause here and return. 
+        // the running interval will pick up and keep going
+        if (this.paused) {
+          this.paused = false;
+        }
+        return; 
       }
 
       // if there aren't jobs in the queue, no point in being here
@@ -1300,12 +1359,18 @@ export default {
       var ptext = document.getElementById("jobQueueItemName1");
 
       const interval = setInterval(() => {
+        // see if we're paused, return if we are, but don't clean up the interval, so we
+        // won't set jobsRunning to false
+        if (this.paused) {
+          return;
+        }
+
         this.curTick++;
         this.ticksRemaining--;
 
         if (this.ticksRemaining === 0) {
           // run's over. we're gonna clear the jobqueue
-          this.jobqueue = [ ];
+          this.jobqueue = [];
           this.jobsRunning = false;
           // clear the interval
           clearInterval(interval);
@@ -1324,6 +1389,8 @@ export default {
 
         counter += xpPerTick;
         this.addSkillXp(s, xpPerTick);
+
+        // update the job progress bar. the xp progress bars were updated in addSkillXp
         var completion = ((counter / this.curJob.cost) * 100).toFixed(0);
         // console.log(completion + "%");
         pbar.style.width = completion + "%";
@@ -1520,25 +1587,28 @@ export default {
 
     },
 
-    // totally refactoring all of this. in the new design all that happens in the job button handlers
-    // is we call queueJob
-    readPage() {
-      this.queueJob(this.jobs[0]);
-    }, // readPage
-
-    loveCharacter() {
-      this.queueJob(this.jobs[1]);
-    }, // loveCharacter
-
-    analText() {
-      this.queueJob(this.jobs[2]);
-    }, // analText
+    handleJobQueueClick(i) {
+      if (i === 0) {
+        // not going to cancel the current job. this will change when i start
+        // shifting the current job off the queue when it starts rather than when it ends
+        return;
+      }
+      this.jobqueue.splice(i, 1);
+      console.log("clicked job queue item " + i);
+    },
 
     // this unlocks a random character. it is called from the characters pane of the your fic tab
     unlockCharacter() {
+      // first let's make sure we have enough character unlocks
+      if (this.inventory[3].count < 1) {
+        // not enough character unlocks
+        return;
+      }
+
       let i = Math.floor(Math.random() * characters.length);
       let c = characters[i];
       this.characters.push(c);
+      this.inventory[3].count--;
 
       // let's update the text in our popup that we're about to pop up
       let p = document.getElementById('unlockedCharacterPopupDisplayText');
@@ -1550,9 +1620,14 @@ export default {
     },
 
     unlockPlot() {
+      // first let's make sure we have enough plot unlocks
+      if (this.inventory[4].count < 1) {
+        return;
+      }
       let i = Math.floor(Math.random() * plots.length);
       let p = plots[i];
       this.plots.push(p);
+      this.inventory[4].count--;
 
       // let's update the text in our popup that we're about to pop up
       let t = document.getElementById('unlockedPlotPopupDisplayText');
@@ -1596,7 +1671,7 @@ export default {
         }
       }
 
-      var fic = `Generate a 5-7 paragraph star wars fan fic detailing a slice of life day between the main character, a heterosexual man,
+      var fic = `Generate a 5-7 paragraph star wars fan fic detailing a meet-cute between the main character, a heterosexual man,
                  and his love interest ${char.name} as they navigate ${plot.name}
 
       `;
@@ -1641,10 +1716,10 @@ export default {
       this.stats.currentRun = ts;
 
       // make sure the job queue is empty
-      this.jobqueue = [ ];
+      this.jobqueue = [];
 
       // reset the ticks remaining
-      this.ticksRemaining = 100000;  
+      this.ticksRemaining = 100000;
 
       // reset the UI
       for (let i = 0; i < this.UIElementsBaseVis.length; i++) {
@@ -1696,7 +1771,12 @@ export default {
     addSkillXp(skill, xp) {
       // xp has a number, skill is a skill structure. we add the xp to the
       // current skill's wip and canon xp, we check both for level up and do
-      // that if necessary, then we set the rounded display versions and return
+      // that if necessary, then we set the rounded display versions, update the
+      // progress bars, and return
+
+      let canonXpBar = document.getElementById("skillCanonProgressFill-" + skill.id);
+      let wipXpBar = document.getElementById("skillWipProgressFill-" + skill.id);
+
       skill.canonXp += xp;
       skill.canonDisplayXp = this.formatDisplayNumber(skill.canonXp);
       if (skill.canonXp > skill.canonXpNeeded) {
@@ -1710,6 +1790,7 @@ export default {
         skill.multiplier = skill.canonMultiplier * skill.wipMultiplier;
         skill.displayMultiplier = this.formatDisplayNumber(skill.multiplier);
       }
+      canonXpBar.style.width = (skill.canonXp / skill.canonXpNeeded) * 100 + "%";
 
       skill.wipXp += xp;
       skill.wipDisplayXp = this.formatDisplayNumber(skill.wipXp);
@@ -1722,9 +1803,11 @@ export default {
         skill.wipDisplayXp = 0;
         skill.wipDisplayXpNeeded = this.formatDisplayNumber(skill.wipXpNeeded);
         skill.wipDisplayMultiplier = this.formatDisplayNumber(skill.wipMultiplier);
+        skill.wipXpDisplayPercentage = this.formatDisplayNumber((skill.wipXp / skill.wipXpNeeded) * 100);
         skill.multiplier = skill.canonMultiplier * skill.wipMultiplier;
         skill.displayMultiplier = this.formatDisplayNumber(skill.multiplier);
       }
+      wipXpBar.style.width = (skill.wipXp / skill.wipXpNeeded) * 100 + "%";
 
 
     },
@@ -1756,14 +1839,14 @@ export default {
     // this returns a blank stats structure with all fields defined and zero'd
     getBlankStatStruct() {
       return {
-            pagesRead: 0,
-            charactersLoved: 0,
-            tropesExtracted: 0,
-            charactersUnlocked: 0,
-            plotsUnlocked: 0,
-            classCredits: 0,
-            ficsGenerated: 0,
-          };
+        pagesRead: 0,
+        charactersLoved: 0,
+        tropesExtracted: 0,
+        charactersUnlocked: 0,
+        plotsUnlocked: 0,
+        classCredits: 0,
+        ficsGenerated: 0,
+      };
     },
 
   },
@@ -1808,9 +1891,17 @@ td {
 .progress-bar {
   margin-top: 0.05em;
   position: relative;
-  background-color: rgb(12, 101, 173);
+  /* background-color: rgb(12, 101, 173); */
   width: 100%;
 }
+
+.canonXpBar {
+  margin-top: 0.05em;
+  position: relative;
+  /* background-color: #dacd21; */
+  width: 100%;
+}
+
 
 .progress-fill {
   position: absolute;
@@ -1831,6 +1922,26 @@ td {
 
 }
 
+.progress-fill-yellow {
+  position: absolute;
+  /*  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); */
+  height: 1.6em;
+  background-color: #dacd21;
+
+  transition-property: width;
+  transition-duration: 0s, 0.3s;
+  /* Two transition durations */
+  transition-timing-function: linear, ease-in-out;
+  /* Two transition timing functions */
+
+
+  /* transition: width 0.3s ease-in-out; */
+
+}
+
+
 .progress.instant {
   transition-duration: 0s !important;
   /* Override the transition duration to be instant */
@@ -1843,6 +1954,89 @@ td {
 
 
 }
+
+
+/* tooltip stuff */
+
+.tooltip {
+  position: relative;
+}
+
+.tooltip .tooltipText {
+  visibility: hidden;
+  /* width: 25em; */
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 0.5em 0.5em;
+  border-style: solid;
+  border-width: 3px;
+  border-color: #333;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  left: 0%;
+  /* width: 32em; */
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+
+/*
+.tooltip .tooltipText {
+  visibility: hidden;
+  width: 25em;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 0.5em 0.5em;
+
+  border-style: solid;
+  border-width: 3px;
+  border-color: #333;
+  border-radius: 6px;
+*/
+  /* Position the tooltip */
+/*
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 102%;
+  width: 32em;
+
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+*/
+
+.tooltip:hover .tooltipText {
+  visibility: visible;
+  opacity: 0.8;
+}
+
+.tooltip-pointer .tooltipText-pointer {
+  visibility: hidden;
+  width: 20em;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 0.5em;
+  padding: 0.5em 0.5em;
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 5%;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.tooltip-pointer:hover .tooltipText-pointer {
+  visibility: visible;
+  opacity: 0.8;
+}
+
 
 
 
@@ -1899,12 +2093,21 @@ td {
 }
 
 /* style the go button */
-.go-box button {
+.go-box .go-button {
   font-size: 16px;
   padding: 10px;
   border: none;
   background-color: hwb(136 6% 35%);
   cursor: pointer;
+}
+
+.go-box .pause-button {
+  font-size: 16px;
+  padding: 10px;
+  border: none;
+  background-color: hwb(5 8% 31%);
+  cursor: pointer;
+
 }
 
 

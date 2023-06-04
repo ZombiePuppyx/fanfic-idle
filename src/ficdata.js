@@ -87,5 +87,20 @@ export const plots = [
         type: 'Slice of life',
 
     },
+    {
+        id: 6,
+        name: 'Go to a concert',
+        type: 'Slice of life',
+    },
+    {
+        id: 7,
+        name: "Farmer's market",
+        type: 'Slice of life',
+    },
+    {
+        id: 8,
+        name: 'Go to a museum',
+        type: 'Slice of life',
+    },
 
 ];
