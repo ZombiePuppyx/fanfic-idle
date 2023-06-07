@@ -15,7 +15,9 @@ export const todoItems = [
   "make queued jobs able to be removed from queue",
   "add a version string to the save",
   "automatically wipe corrupt saves or saves from too many versions ago",
-  "improve the handling of the job queue UI elements"
+  "better runtime stats collection",
+  "update the fic generator pane to allow support for multiple chapters",
+  "refactor plot and character data structures to allow for more sophisticated plots and attributes, immplement rarity",
 
 ];
 
@@ -30,6 +32,10 @@ export const toDoneList = [
   },
   {
     item: "figure out tooltips",
+    date: '06/04/2023',
+  },
+  {
+    item:   "improve the handling of the job queue UI elements",
     date: '06/04/2023',
   },
 ];

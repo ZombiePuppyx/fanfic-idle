@@ -27,7 +27,7 @@
                 <td colspan="5">
                   <div class="progress-container" style="height: 1px; padding: 0">
                     <div class="progress-bar tooltip" width="100%" style="height: 10px">
-                      <div class="progress-fill" :id="'skillWipProgressFill-' + skill.id" style="height: 10px"></div>
+                      <div class="progress-fill-wip" :id="'skillWipProgressFill-' + skill.id" style="height: 10px"></div>
                       <span class="tooltipText">
                         <p>Work in Progress experience (resets each run)</p>
                         <p>Lvl: {{ skill.wipLevel }} </p>
@@ -43,7 +43,7 @@
                 <td colspan="5">
                   <div class="progress-container" style="height: 1px; padding: 0">
                     <div class="canonXpBar tooltip" width="100%" style="height: 10px">
-                      <div class="progress-fill-yellow" :id="'skillCanonProgressFill-' + skill.id" style="height: 10px">
+                      <div class="progress-fill-canon" :id="'skillCanonProgressFill-' + skill.id" style="height: 10px">
                       </div>
                       <span class="tooltipText">
                         <p>Canon experience (doesn't reset between runs)</p>
@@ -60,8 +60,11 @@
           </div>
         </div>
         <div class="box center-box">
-          <h2>fanfic-idle</h2>
+          <h2>Ficremental</h2>
           <p>{{ storyText }}</p>
+
+
+          <!--     ORIGINAL JOB BUTTONS, DOING AN EXPERIMENT
           <div class="button-container tooltip" id="job-button-1-container">
             <span class="tooltipText">{{ readTimer }}</span>
             <button @click="handleJobButton(1)">Read page</button>            
@@ -74,6 +77,25 @@
             <button @click="handleJobButton(3)">Analyze Text</button>
             <span class="tooltipText">{{ analTimer }}</span>
           </div>
+        -->
+
+          <div class="button-container">
+            <span class="button-container tooltip" id="job-button-1-container">
+              <span class="tooltipText">{{ readTimer }}</span>
+              <button @click="handleJobButton(1)">Read page</button>
+            </span>
+            <span class="button-container tooltip" id="job-button-2-container" style="display: none">
+              <button @click="handleJobButton(2)">Love character</button>
+              <span class="tooltipText">{{ loveTimer }}</span>
+            </span>
+            <span class="button-container tooltip" id="job-button-3-container" style="display: none">
+              <button @click="handleJobButton(3)">Analyze Text</button>
+              <span class="tooltipText">{{ analTimer }}</span>
+            </span>
+          </div>
+
+
+
 
           <div class="button-container tooltip" id="job-button-4-container" style="display: none">
             <button @click="handleJobButton(4)">Study Character</button>
@@ -135,7 +157,7 @@
             <li v-for="(item, index) in jobqueue" :key="item.id" @click="handleJobQueueClick(index)">
               {{ item.name }}
             </li>
-          </ul> 
+          </ul>
 
         </div>
 
@@ -485,7 +507,7 @@
       <button class="close-button" @click="startGame"></button>
       <!-- Content for the popup -->
       <div class="popup-content">
-        <h2>Welcome to Fanfic Idle</h2>
+        <h2>Welcome to Ficremental</h2>
         <div>
           <p id="startGamePopupText">Are you ready to become a glamrous and adored author of fan fiction?</p>
         </div>
@@ -503,7 +525,7 @@
       <button class="close-button" @click="restartRun"></button>
       <!-- Content for the popup -->
       <div class="popup-content">
-        <h2>After all that work, time for rebirt</h2>
+        <h2>After all that work, time for rebirth</h2>
         <div>
           <p id="gameOverPopupDisplayText">You'll make it farther</p>
         </div>
@@ -580,6 +602,24 @@
     </div>
 
 
+    <div class="popup-box" id="error-popup" style="display: none">
+      <button class="close-button" @click="closePopup('error-popup')"></button>
+      <!-- Content for the popup -->
+      <div class="popup-content">
+        <h2>Something ain't right</h2>
+        <div>
+          <p id="errorPopupDisplayText">{{ currentErrorText }}</p>
+        </div>
+        <hr class="section-divider" />
+        <div class="button-container">
+          <button @click="closePopup('error-popup')">Continue</button>
+        </div>
+      </div>
+      <!--      <button class="close-button bottom" @click="closePopup"></button> -->
+    </div>
+
+
+
 
   </div> <!-- div.app -->
 </template>
@@ -599,8 +639,8 @@ export default {
 
 
       // use dev weights for jobs and leveling
-      devJobCost: false,
-      //devJobCost: true,
+      //devJobCost: false,
+      devJobCost: true,
 
       // the stuff we imported
       characters: [],
@@ -1039,6 +1079,15 @@ export default {
           consumes: {},
         },
 
+        {
+          id: 9,
+          name: 'Read series',
+          cost: 50,
+          skill: 'Reading',
+          produces: { Page: 10 },
+          consumes: {},
+        },
+
 
 
 
@@ -1127,6 +1176,8 @@ export default {
       isTicking: false,  // not sure i'm going to use this in the job loop yet
       curTick: 0,
       lastSaveTick: 0,
+
+      currentErrorText: 'This is where error text goes',
 
       saveGameKey: 'fanfic-game-save',
       saveGame: '',
@@ -1217,7 +1268,7 @@ export default {
       }
 
       for (let i = 0; i < toDoneList.length; i++) {
-        this.toDone.push({ id: i, text: toDoneList[i].item, date: toDoneList[i].date});
+        this.toDone.push({ id: i, text: toDoneList[i].item, date: toDoneList[i].date });
       }
 
       // do we need to set the development values (meaning: really cheap) for
@@ -1250,12 +1301,12 @@ export default {
       // just directly set the costs instead of looping because
       // at some point i may want to vary them maybe
       this.jobs[0].cost = 5;
-      this.jobs[1].cost = 5;
-      this.jobs[2].cost = 5;
-      this.jobs[3].cost = 5;
-      this.jobs[4].cost = 5;
-      this.jobs[5].cost = 5;
-      this.jobs[6].cost = 5;
+      this.jobs[1].cost = 8;
+      this.jobs[2].cost = 12;
+      this.jobs[3].cost = 15;
+      this.jobs[4].cost = 15;
+      this.jobs[5].cost = 25;
+      this.jobs[6].cost = 25;
       this.jobs[7].cost = 5;
 
       // lets also bump up production
@@ -1284,7 +1335,7 @@ export default {
     pauseJobs() {
       this.paused = !this.paused;
     },
-    
+
     // this is the main game loop right here
     runJobs() {
       if (!this.initted) {
@@ -1298,7 +1349,7 @@ export default {
         if (this.paused) {
           this.paused = false;
         }
-        return; 
+        return;
       }
 
       // if there aren't jobs in the queue, no point in being here
@@ -1326,6 +1377,7 @@ export default {
       // eventually the jobqueue will be empty and will short circuit out of the recursion
 
       this.curJob = this.jobqueue[0];
+      this.jobqueue.shift();
       let s = this.getSkillFromJob(this.curJob);
 
       // check if we can afford the job
@@ -1334,7 +1386,7 @@ export default {
         // runJobs again here because there may be things queued after this one that can
         // be afforded
         this.jobsRunning = false;
-        this.jobqueue.shift();
+        // this.jobqueue.shift();
         return this.runJobs();
       }
 
@@ -1403,13 +1455,12 @@ export default {
 
         if (counter >= this.curJob.cost) {
           // job is done, handle that. this means adding new inventory, clearing the jobs running flag,
-          // clearing the interval, removing this job from the queue, checking if we have a game state
+          // clearing the interval, checking if we have a game state
           // advance and handling it if so, and calling runJobs
           this.jobComplete(this.curJob);
           this.curJob.completion = 0;
           clearInterval(interval);
           this.jobsRunning = false;
-          this.jobqueue.shift(); // throw away the first job now that it's done
           pbar.classList.add('instant');
           pbar.style.width = "0%";
           pbar.classList.remove('instant');
@@ -1581,6 +1632,9 @@ export default {
         this.queueJob(this.jobs[7]);
 
       }
+      else if (num === 7) {
+        this.queueJob(this.jobs[8]);
+      }
       else {
         console.log("unknown job (" + num + ")");
       }
@@ -1588,13 +1642,7 @@ export default {
     },
 
     handleJobQueueClick(i) {
-      if (i === 0) {
-        // not going to cancel the current job. this will change when i start
-        // shifting the current job off the queue when it starts rather than when it ends
-        return;
-      }
       this.jobqueue.splice(i, 1);
-      console.log("clicked job queue item " + i);
     },
 
     // this unlocks a random character. it is called from the characters pane of the your fic tab
@@ -1655,6 +1703,10 @@ export default {
 
 
       var char, plot; // these will be the actual objs
+
+
+
+
       for (let i = 0; i < this.characters.length; i++) {
         if (this.characters[i].id === this.selectedCharacter) {
           char = this.characters[i];
@@ -1671,8 +1723,19 @@ export default {
         }
       }
 
-      var fic = `Generate a 5-7 paragraph star wars fan fic detailing a meet-cute between the main character, a heterosexual man,
-                 and his love interest ${char.name} as they navigate ${plot.name}
+      if (!plot || !char) {
+        this.currentErrorText = "You need to select a plot and a character to generate a meetcute";
+        this.displayPopup('error-popup');
+        return;
+
+      }
+
+      this.stats.currentRun.ficsGenerated++;
+      this.stats.alltime.ficsGenerated++;
+
+
+      var fic = `Generate a short meet-cute encounter between our protagonist, a 33-year-old femme-presenting AFAB 
+                 enby, and their potential love interest, ${char.name} taking place against a setting of ${plot.name}
 
       `;
 
@@ -1922,13 +1985,32 @@ td {
 
 }
 
-.progress-fill-yellow {
+.progress-fill-canon {
   position: absolute;
   /*  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%); */
   height: 1.6em;
-  background-color: #dacd21;
+  background-color: #da4d21;
+
+  transition-property: width;
+  transition-duration: 0s, 0.3s;
+  /* Two transition durations */
+  transition-timing-function: linear, ease-in-out;
+  /* Two transition timing functions */
+
+
+  /* transition: width 0.3s ease-in-out; */
+
+}
+
+.progress-fill-wip {
+  position: absolute;
+  /*  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); */
+  height: 1.6em;
+  background-color: #daa921;
 
   transition-property: width;
   transition-duration: 0s, 0.3s;
@@ -1982,33 +2064,6 @@ td {
   transition: opacity 0.5s;
 }
 
-
-/*
-.tooltip .tooltipText {
-  visibility: hidden;
-  width: 25em;
-  background-color: black;
-  color: #fff;
-  text-align: center;
-  padding: 0.5em 0.5em;
-
-  border-style: solid;
-  border-width: 3px;
-  border-color: #333;
-  border-radius: 6px;
-*/
-  /* Position the tooltip */
-/*
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  left: 102%;
-  width: 32em;
-
-  opacity: 0;
-  transition: opacity 0.5s;
-}
-*/
 
 .tooltip:hover .tooltipText {
   visibility: visible;
