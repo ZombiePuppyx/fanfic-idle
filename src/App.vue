@@ -96,6 +96,7 @@
 
 
 
+          <div class="button-container">
 
           <div class="button-container tooltip" id="job-button-4-container" style="display: none">
             <button @click="handleJobButton(4)">Study Character</button>
@@ -105,6 +106,12 @@
             <button @click="handleJobButton(5)">Discover Plot</button>
             <span class="tooltipText">{{ job5Timer }}</span>
           </div>
+
+          </div>
+
+
+          <div class="button-container">
+
           <div class="button-container tooltip" id="job-button-6-container" style="display: none">
             <button @click="handleJobButton(6)">Writing class</button>
             <span class="tooltipText">
@@ -116,6 +123,9 @@
               </p>
             </span>
           </div>
+
+          </div>
+
 
           <div class="button-container tooltip" id="job-button-7-container" style="display: none">
             <button @click="handleJobButton(7)">Read series</button>
@@ -627,7 +637,7 @@
 <script>
 import { characters, plots } from './ficdata.js';
 import { todoItems, toDoneList } from './todolist.js';
-// import plots from './ficdata.js';
+import { storytexts, flavorQuotes } from './storytexts.js';
 
 
 export default {
@@ -645,6 +655,7 @@ export default {
       // the stuff we imported
       characters: [],
       plots: [],
+      flavorQuotes: flavorQuotes,
 
 
 
@@ -709,7 +720,7 @@ export default {
         // GAMESTATE 0: you must read
         // this is our starting state
         {
-          storyText: "You need to create, but first you must find inspiration. Read something. Read a lot of things. Read 5 things.",
+          storyText: storytexts[0],
 
           advanceCriteria: [
             () => {
@@ -743,9 +754,8 @@ export default {
         // GAMESTATE 1: love character unlocked
         // this state is after the initial state, but before trope fragments are unlocked
         {
-          storyText: `You can't stop reading. You can't stop imagining. Your mind builds dreamscapes from the stories you read
-          and your heart aches for the friends you'll never meet. You find you can fall in love with a fictional character, and so
-          you do. Maybe things will happen after you've fallen in love with 3 characters.`,
+          storyText: storytexts[1],
+
           advanceCriteria: [
             () => { return this.stats.currentRun.pagesRead >= 10; },
           ],
@@ -772,9 +782,7 @@ export default {
         // GAMESTATE 2: anal plot unlocked
         // this state is after trope fragments are unlocked
         {
-          storyText: `You can feel connections being made in your mind and in your soul. These characters and their stories speak
-                      to you in a way that nothing has before. You start to see recurring themes. Something deep inside you tells 
-                      you that you need to collect 3 loved characters and 3 extracted tropes. `,
+          storyText: storytexts[2],
           advanceCriteria: [
             () => {
               return this.stats.currentRun.tropesExtracted >= 3 && this.stats.currentRun.charactersLoved >= 3;
@@ -1179,7 +1187,7 @@ export default {
 
       currentErrorText: 'This is where error text goes',
 
-      saveGameKey: 'fanfic-game-save',
+      saveGameKey: 'fanfic-game-save-v002',
       saveGame: '',
       saveInterval: 1000, // how many ticks between saves. this is about 33 seconds
 
@@ -1253,7 +1261,7 @@ export default {
       // first we'll load our save
       this.saveGame = localStorage.getItem(this.saveGameKey);
       // console.log("in init with savetext (" + this.saveGame + ")");
-      if (this.saveGame === '') {
+      if (this.saveGame === '' || this.saveGame === null) {
         // no save
       }
       else {
